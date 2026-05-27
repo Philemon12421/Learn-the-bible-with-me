@@ -1,0 +1,27 @@
+{
+  "name": "Learn With Me",
+  "short_name": "LearnWithMe",
+  "description": "Daily Bible verses, motivational quotes, and timeless wisdom for your faith journey.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f7f4",
+  "theme_color": "#b45309",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/cross.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/cross.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["lifestyle", "education", "books"],
+  "lang": "en-US",
+  "dir": "ltr"
+}
