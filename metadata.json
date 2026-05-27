@@ -1,0 +1,6 @@
+{
+  "name": "Learn With Me",
+  "description": "Daily Bible quotations, motivational quotes, and wise sayings with an elegant, minimalist white aesthetic and soft interaction patterns.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
