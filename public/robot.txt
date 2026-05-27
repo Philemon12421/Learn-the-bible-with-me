@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://learnthebible.vercel.app/sitemap.xml
+
+# Disallow admin or private paths (none currently, but good practice)
+Disallow: /api/
+
+# Crawl-delay recommendation for polite crawlers
+Crawl-delay: 10
