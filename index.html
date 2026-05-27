@@ -1,13 +1,97 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+
+    <!-- FAVICON: Bible/Cross icon -->
+    <link rel="icon" type="image/jpeg" href="/cross.jpeg" />
+    <link rel="apple-touch-icon" href="/cross.jpeg" />
+    <link rel="shortcut icon" href="/cross.jpeg" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Learn With Me</title>
+    <meta name="theme-color" content="#b45309" />
+
+    <!-- PRIMARY SEO -->
+    <title>Learn With Me — Daily Bible Verses, Motivation & Wisdom</title>
+    <meta name="description" content="Discover daily Bible scriptures with reflections, motivational quotes from world leaders, and timeless wise proverbs. A new verse, quote, and saying for every day. Free daily inspiration for your faith journey." />
+    <meta name="keywords" content="daily bible verse, bible scripture, daily motivation, motivational quotes, wise sayings, proverbs, faith inspiration, daily devotional, Christian quotes, wisdom quotes, learn the bible, spiritual growth" />
+    <meta name="author" content="Drenchack Tech Company" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://learnthebible.vercel.app/" />
+
+    <!-- OPEN GRAPH (Facebook, WhatsApp previews) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://learnthebible.vercel.app/" />
+    <meta property="og:title" content="Learn With Me — Daily Bible, Motivation & Wisdom" />
+    <meta property="og:description" content="Daily Bible verses with reflections, motivational quotes, and timeless wisdom — one for every day of the month. Free faith inspiration." />
+    <meta property="og:image" content="https://learnthebible.vercel.app/cross.jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="Learn With Me" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- TWITTER CARD -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Learn With Me — Daily Bible, Motivation & Wisdom" />
+    <meta name="twitter:description" content="Daily Bible verses, motivational quotes, and wise proverbs — a new treasure every day." />
+    <meta name="twitter:image" content="https://learnthebible.vercel.app/cross.jpeg" />
+
+    <!-- STRUCTURED DATA (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Learn With Me",
+      "alternateName": "Learn The Bible",
+      "url": "https://learnthebible.vercel.app/",
+      "description": "Daily Bible scriptures, motivational quotes, and timeless wisdom for your faith journey.",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Drenchack Tech Company",
+        "email": "drenchstudio1@gmail.com"
+      },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://learnthebible.vercel.app/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Drenchack Tech Company",
+      "url": "https://learnthebible.vercel.app/",
+      "logo": "https://learnthebible.vercel.app/cross.jpeg",
+      "sameAs": [
+        "https://www.facebook.com/share/1EgWqBLG4N/",
+        "https://whatsapp.com/channel/0029VbBYNsGHAdNUPx90se1q"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "drenchstudio1@gmail.com",
+        "telephone": "+233592063645",
+        "contactType": "customer support"
+      }
+    }
+    </script>
+
+    <!-- PRECONNECT for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   </head>
   <body>
+    <noscript>
+      <div style="padding:20px;text-align:center;font-family:sans-serif">
+        <h1>Learn With Me — Daily Bible Verses & Wisdom</h1>
+        <p>Please enable JavaScript to experience this site.</p>
+        <p>Daily Bible scriptures, motivational quotes, and timeless wisdom.</p>
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-
