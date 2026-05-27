@@ -25,10 +25,7 @@ export function HomeView({ onNavigate, todayDate }: HomeProps) {
       
       {/* HERO */}
       <section className="text-center py-10 md:py-16 max-w-3xl mx-auto space-y-5 px-4">
-        <div className="inline-flex items-center gap-2 bg-amber-50 border border-amber-200/60 text-amber-800 py-1.5 px-4 rounded-full text-xs font-semibold">
-          <BookOpen className="w-3.5 h-3.5" />
-          <span>Daily Faith · Wisdom · Growth</span>
-        </div>
+       
 
         <h1 className="text-3xl sm:text-5xl md:text-6xl font-serif text-gray-900 font-extrabold tracking-tight leading-tight">
           Daily inspiration for <span className="text-amber-700">faith, wisdom</span> and growth
