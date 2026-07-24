@@ -1,6 +1,6 @@
 import { BibleVerse, MotivationalQuote, WiseSaying } from './types';
 
-// 31 Daily Bible verses with references, premium text, explanations, and reflections (one for each day of the month)
+// 40 Bible verses with references, premium text, explanations, and reflections
 export const BIBLE_VERSES: BibleVerse[] = [
   {
     id: 'b1',
@@ -218,10 +218,73 @@ export const BIBLE_VERSES: BibleVerse[] = [
     text: 'Now to Him who is able to do exceedingly abundantly above all that we ask or think, according to the power that works in us.',
     explanation: 'Our highest prayers and wild imaginations are only the floorboards of what God is capable of doing. His power is already active within our spirit, pushing past our limitations.',
     reflection: 'Father, expand my expectations today. Work through my prayers and actions beyond what I can conceptualize, and let Your power be magnified.'
+  },
+  {
+    id: 'b32',
+    reference: 'John 15:5',
+    text: 'I am the vine, you are the branches. He who abides in Me, and I in him, bears much fruit; for without Me you can do nothing.',
+    explanation: 'A branch has no independent life apart from the vine — its fruitfulness is entirely a byproduct of connection. Our productivity, character, and impact flow not from effort alone but from staying constantly attached to Christ.',
+    reflection: 'Jesus, keep me abiding in You today. Let every good thing I produce simply be the natural overflow of staying close to You, not strain from working alone.'
+  },
+  {
+    id: 'b33',
+    reference: 'Psalm 27:1',
+    text: 'The Lord is my light and my salvation; whom shall I fear? The Lord is the strength of my life; of whom shall I be afraid?',
+    explanation: 'Light exposes danger and shows the way forward; salvation removes the threat entirely. With both realities anchored in God, fear loses its grip because there is nothing left unaddressed.',
+    reflection: 'Lord, be my light in every uncertain situation today. Since You are my strength and salvation, I release the fears that have no true claim on me.'
+  },
+  {
+    id: 'b34',
+    reference: 'Proverbs 16:3',
+    text: 'Commit your works to the Lord, and your thoughts will be established.',
+    explanation: 'Mental chaos often comes from carrying plans alone. When we hand our projects, goals, and decisions over to God first, our thinking settles because we are no longer solely responsible for the outcome.',
+    reflection: 'Father, I commit today\'s tasks and plans into Your hands before I begin. Settle my scattered thoughts and establish my steps according to Your will.'
+  },
+  {
+    id: 'b35',
+    reference: 'Micah 6:8',
+    text: 'He has shown you, O man, what is good; and what does the Lord require of you but to do justly, to love mercy, and to walk humbly with your God?',
+    explanation: 'Spirituality is often overcomplicated. This verse strips it down to three practical postures: fairness in action, tenderness toward others, and a humble, ongoing walk with God rather than showy religion.',
+    reflection: 'Lord, simplify my faith today. Help me act justly toward others, love mercy readily, and walk humbly with You rather than performing for anyone else.'
+  },
+  {
+    id: 'b36',
+    reference: '1 Corinthians 13:4-7',
+    text: 'Love suffers long and is kind; love does not envy; love does not parade itself, is not puffed up; bears all things, believes all things, hopes all things, endures all things.',
+    explanation: 'This is love defined by action rather than feeling. Each clause describes a discipline — patience over irritation, humility over pride, endurance over giving up — that any of us can practice regardless of mood.',
+    reflection: 'Teach me today, Lord, to love through action: patient instead of irritable, humble instead of boastful, enduring instead of giving up on the people in my life.'
+  },
+  {
+    id: 'b37',
+    reference: 'Deuteronomy 31:6',
+    text: 'Be strong and of good courage, do not fear nor be afraid of them; for the Lord your God, He is the One who goes with you. He will not leave you nor forsake you.',
+    explanation: 'Courage here is rooted in company, not personal bravado. Because God commits to travel every step of the road with us, the fear of facing it alone is removed entirely.',
+    reflection: 'Father, remind me today that I am never facing anything alone. Because You go with me and will not leave me, I choose courage over fear.'
+  },
+  {
+    id: 'b38',
+    reference: 'Psalm 34:18',
+    text: 'The Lord is near to those who have a broken heart, and saves such as have a contrite spirit.',
+    explanation: 'God is not distant from pain — He draws especially close to it. Brokenness is not a disqualifier from His presence; it is often the very condition that positions us to feel Him nearest.',
+    reflection: 'Lord, in whatever is broken in me today, draw near. Let me feel Your closeness precisely in the places that hurt, not just in the places that are whole.'
+  },
+  {
+    id: 'b39',
+    reference: 'Jeremiah 29:11',
+    text: 'For I know the thoughts that I think toward you, says the Lord, thoughts of peace and not of evil, to give you a future and a hope.',
+    explanation: 'Even amid displacement and hardship, God discloses His intentions: not harm, but a deliberate future built on peace and hope. Our present circumstance is not the final word on our story.',
+    reflection: 'Father, when my present season feels uncertain, remind me that Your thoughts toward me are peace, not harm. I trust You with the future You are shaping.'
+  },
+  {
+    id: 'b40',
+    reference: 'Galatians 5:22-23',
+    text: 'But the fruit of the Spirit is love, joy, peace, longsuffering, kindness, goodness, faithfulness, gentleness, self-control. Against such there is no law.',
+    explanation: 'Rather than a checklist of rules, spiritual maturity is described as fruit — a natural, gradual outgrowth of a life rooted in the Spirit rather than forced effort or self-discipline alone.',
+    reflection: 'Holy Spirit, grow Your fruit in me today — not by my striving, but by staying rooted in You, so love, joy, peace, and self-control ripen naturally in my life.'
   }
 ];
 
-// 31 Daily Motivational Quotes with authors and actionable, empowering insights
+// 40 Motivational Quotes with authors and actionable, empowering insights
 export const MOTIVATIONAL_QUOTES: MotivationalQuote[] = [
   {
     id: 'm1',
@@ -408,10 +471,64 @@ export const MOTIVATIONAL_QUOTES: MotivationalQuote[] = [
     text: 'Go confidently in the direction of your dreams! Live the life you\'ve imagined.',
     author: 'Henry David Thoreau',
     insight: 'Living authentically requires boldness. Discard the scripts written for you by society or fearful voices, and step onto the unique path of your true calling.'
+  },
+  {
+    id: 'm32',
+    text: 'Whether you think you can, or you think you can\'t — you\'re right.',
+    author: 'Henry Ford',
+    insight: 'Your expectation quietly shapes your effort. Two people with identical skill often diverge in outcome purely because of the story each one believes about their own capability.'
+  },
+  {
+    id: 'm33',
+    text: 'The only impossible journey is the one you never begin.',
+    author: 'Tony Robbins',
+    insight: 'Impossibility is often a label we attach before ever testing the first step. Begin imperfectly; momentum has a way of revealing a path that standing still never will.'
+  },
+  {
+    id: 'm34',
+    text: 'Everything you\'ve ever wanted is on the other side of fear.',
+    author: 'George Addair',
+    insight: 'Fear usually guards the exact threshold where growth lives. Treat its presence not as a stop sign but as a marker that something worthwhile is just ahead.'
+  },
+  {
+    id: 'm35',
+    text: 'Success usually comes to those who are too busy to be looking for it.',
+    author: 'Henry David Thoreau',
+    insight: 'Chasing outcomes directly often produces anxiety instead of results. Pour your energy into meaningful daily work, and success tends to arrive as a byproduct.'
+  },
+  {
+    id: 'm36',
+    text: 'Opportunities don\'t happen. You create them.',
+    author: 'Chris Grosser',
+    insight: 'Waiting for a perfect opening keeps you passive. The people who advance are usually the ones who build the door instead of waiting for one to open.'
+  },
+  {
+    id: 'm37',
+    text: 'Don\'t be afraid to give up the good to go for the great.',
+    author: 'John D. Rockefeller',
+    insight: 'Comfortable and adequate can quietly become the enemy of exceptional. Periodically ask whether what\'s "good enough" is actually costing you something greater.'
+  },
+  {
+    id: 'm38',
+    text: 'The way to get started is to quit talking and begin doing.',
+    author: 'Walt Disney',
+    insight: 'Planning has diminishing returns once the basic direction is clear. At some point, the only way to learn what actually works is to start moving and adjust as you go.'
+  },
+  {
+    id: 'm39',
+    text: 'Your time is limited, so don\'t waste it living someone else\'s life.',
+    author: 'Steve Jobs',
+    insight: 'Borrowed ambitions rarely satisfy. Regularly check whether your goals are truly yours, or inherited scripts from family, culture, or comparison you never chose.'
+  },
+  {
+    id: 'm40',
+    text: 'The harder you work for something, the greater you\'ll feel when you achieve it.',
+    author: 'Anonymous',
+    insight: 'Effortless wins fade quickly from memory, but hard-earned ones become part of your identity. Let the difficulty of the climb add to the value of the summit, not subtract from it.'
   }
 ];
 
-// 31 Daily Wise Sayings with authors and accessible explanations of their wisdom
+// 40 Wise Sayings with authors and accessible explanations of their wisdom
 export const WISE_SAYINGS: WiseSaying[] = [
   {
     id: 'w1',
@@ -598,25 +715,83 @@ export const WISE_SAYINGS: WiseSaying[] = [
     text: 'The tongue has no bones, but it is strong enough to break a heart.',
     author: 'Proverb',
     explanation: 'Words possess spiritual weight. Be extremely selective with how you speak to your spouse, children, and colleagues today, utilizing your language to build rather than crush.'
+  },
+  {
+    id: 'w32',
+    text: 'The bamboo that bends is stronger than the oak that resists.',
+    author: 'Japanese Proverb',
+    explanation: 'Rigidity often breaks under pressure that flexibility would have survived. Wisdom sometimes looks like adapting your approach rather than stubbornly holding your original position.'
+  },
+  {
+    id: 'w33',
+    text: 'Not all those who wander are lost.',
+    author: 'J.R.R. Tolkien',
+    explanation: 'A winding, uncertain path is not automatically a mistake. Some of the most meaningful growth happens during seasons that don\'t look linear or clearly mapped out from the outside.'
+  },
+  {
+    id: 'w34',
+    text: 'When the student is ready, the teacher appears.',
+    author: 'Buddhist Proverb',
+    explanation: 'Readiness matters as much as opportunity. The same lesson can pass by unnoticed for years until the moment we\'re finally humble and attentive enough to actually receive it.'
+  },
+  {
+    id: 'w35',
+    text: 'A single arrow is easily broken, but not ten in a bundle.',
+    author: 'Japanese Proverb',
+    explanation: 'Isolation makes us fragile; community makes us resilient. Whatever burden feels unbearable alone often becomes manageable the moment it is shared with others.'
+  },
+  {
+    id: 'w36',
+    text: 'The best time to plant a tree was 20 years ago. The second best time is now.',
+    author: 'Chinese Proverb',
+    explanation: 'Regret over a late start is wasted energy compared to simply beginning today. The gap between an ideal timeline and your actual one closes the moment you take the first step.'
+  },
+  {
+    id: 'w37',
+    text: 'Little strokes fell great oaks.',
+    author: 'Benjamin Franklin',
+    explanation: 'No single action topples something significant, whether a habit, a debt, or a mighty tree. Consistent small effort, repeated over time, is what eventually brings down the largest obstacles.'
+  },
+  {
+    id: 'w38',
+    text: 'He that would eat the fruit must climb the tree.',
+    author: 'Proverb',
+    explanation: 'Reward is rarely separated from effort by more than one honest step. Wishing for the fruit while avoiding the climb is simply another way of choosing to stay hungry.'
+  },
+  {
+    id: 'w39',
+    text: 'Fall seven times, stand up eight.',
+    author: 'Japanese Proverb',
+    explanation: 'The count of failures is irrelevant next to the count of times you got back up. Resilience isn\'t the absence of falling; it\'s simply refusing to let the last fall be final.'
+  },
+  {
+    id: 'w40',
+    text: 'There is no shortcut to any place worth going.',
+    author: 'Beverly Sills',
+    explanation: 'Anything genuinely valuable — mastery, character, deep relationships — is built through time and repetition, not discovered through a clever bypass. Respect the process instead of hunting for a way around it.'
   }
 ];
 
 // Helper to get daily items based on day of year/month deterministically
 export function getDailyBibleVerse(date: Date): BibleVerse {
-  // Use day of month (1-31) to guarantee one of the 31 unique verses
-  const day = date.getDate(); // 1 to 31
-  const index = (day - 1) % BIBLE_VERSES.length;
+  // Use day of month (1-31) combined with the month so the pool of 40
+  // rotates further instead of tying every month to the same first 31 items.
+  const day = date.getDate();
+  const month = date.getMonth();
+  const index = (day - 1 + month * 9) % BIBLE_VERSES.length;
   return BIBLE_VERSES[index];
 }
 
 export function getDailyMotivationalQuote(date: Date): MotivationalQuote {
   const day = date.getDate();
-  const index = (day - 1) % MOTIVATIONAL_QUOTES.length;
+  const month = date.getMonth();
+  const index = (day - 1 + month * 9) % MOTIVATIONAL_QUOTES.length;
   return MOTIVATIONAL_QUOTES[index];
 }
 
 export function getDailyWiseSaying(date: Date): WiseSaying {
   const day = date.getDate();
-  const index = (day - 1) % WISE_SAYINGS.length;
+  const month = date.getMonth();
+  const index = (day - 1 + month * 9) % WISE_SAYINGS.length;
   return WISE_SAYINGS[index];
 }
