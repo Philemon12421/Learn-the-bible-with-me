@@ -59,6 +59,7 @@ function wrapText(
   maxWidth: number,
   lineHeight: number
 ): number {
+  if (!text) return y;
   const words = text.split(' ');
   let line = '';
   let curY = y;
@@ -72,8 +73,11 @@ function wrapText(
       line = test;
     }
   }
-  if (line) ctx.fillText(line, x, curY);
-  return curY + lineHeight;
+  if (line) {
+    ctx.fillText(line, x, curY);
+    curY += lineHeight;
+  }
+  return curY;
 }
 
 function roundRect(
@@ -94,20 +98,139 @@ function roundRect(
   ctx.closePath();
 }
 
+/** Subtle off-white paper texture — soft mottling, no heavy watermark. */
+function drawPaperTexture(ctx: CanvasRenderingContext2D, size: number) {
+  ctx.save();
+  ctx.fillStyle = '#fdfdfb';
+  ctx.fillRect(0, 0, size, size);
+
+  ctx.globalAlpha = 0.03;
+  // deterministic-ish scatter (seeded by index) so re-renders don't jitter wildly
+  let seed = 42;
+  const rand = () => {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  };
+  for (let i = 0; i < 70; i++) {
+    const x = rand() * size;
+    const y = rand() * size;
+    const r = 60 + rand() * 160;
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+    grad.addColorStop(0, '#8a8a86');
+    grad.addColorStop(1, 'rgba(138,138,134,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+/** Blue "verified" style brand badge with a checkmark. */
+function drawVerifiedBadge(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
+  ctx.save();
+  ctx.fillStyle = '#2f7dea';
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = r * 0.22;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(cx - r * 0.45, cy + r * 0.02);
+  ctx.lineTo(cx - r * 0.08, cy + r * 0.38);
+  ctx.lineTo(cx + r * 0.5, cy - r * 0.35);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** Small circular cross icon, matching the site's brand iconography. */
+function drawCrossBadge(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
+  ctx.save();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#eee8de';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = '#9a6b45';
+  const barW = r * 0.24;
+  roundRect(ctx, cx - barW / 2, cy - r * 0.55, barW, r * 1.1, barW / 2);
+  ctx.fill();
+  roundRect(ctx, cx - r * 0.4, cy - r * 0.14, r * 0.8, barW, barW / 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+/** Small circular book icon, matching the site's brand iconography. */
+function drawBookBadge(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
+  ctx.save();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#eee8de';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.stroke();
+
+  const w = r * 1.15;
+  const h = r * 0.95;
+  ctx.fillStyle = '#4a3323';
+  ctx.beginPath();
+  roundRect(ctx, cx - w / 2, cy - h / 2, w, h, 5);
+  ctx.fill();
+  ctx.fillStyle = '#d4af37';
+  ctx.fillRect(cx - w * 0.1, cy - h / 2, w * 0.2, h);
+  ctx.restore();
+}
+
+/**
+ * Splits a quote into a "primary" (black) clause and a "secondary" (accent-colored)
+ * clause, mirroring the two-tone emphasis style used across the brand's quote cards.
+ * Prefers splitting on natural punctuation (":", ";", ",") near the middle of the
+ * quote; falls back to an even word-count split.
+ */
+function splitForEmphasis(text: string): { primary: string; secondary: string } {
+  const breakChars = [':', ';', ','];
+  let bestIdx = -1;
+  for (const ch of breakChars) {
+    const idx = text.indexOf(ch);
+    if (idx > text.length * 0.25 && idx < text.length * 0.8) {
+      bestIdx = idx;
+      break;
+    }
+  }
+  if (bestIdx === -1) {
+    const words = text.split(' ');
+    if (words.length < 4) return { primary: text, secondary: '' };
+    const mid = Math.ceil(words.length / 2);
+    return {
+      primary: words.slice(0, mid).join(' '),
+      secondary: words.slice(mid).join(' '),
+    };
+  }
+  return {
+    primary: text.slice(0, bestIdx + 1).trim(),
+    secondary: text.slice(bestIdx + 1).trim(),
+  };
+}
+
 // ─── Main download function ────────────────────────────────────────────────────
 
 /**
- * Renders a 1080×1080 Instagram-ready PNG of the quote and triggers download.
- *
- * @param logoUrl  Optional URL/path to your logo image for the watermark.
- *                 If omitted, a text monogram ("LWM") is used instead.
+ * Renders a 1080×1080 share-ready PNG of the quote — clean paper background,
+ * brand mark, reference/author line, two-tone quote text, and a footer link —
+ * and triggers a download.
  */
-async function downloadQuoteAsImage(
-  props: QuoteCardProps,
-  logoUrl?: string
-): Promise<void> {
+async function downloadQuoteAsImage(props: QuoteCardProps): Promise<void> {
   const SIZE = 1080;
-  const PADDING = 80;
+  const PADDING = 88;
   const c = COLOR_MAP[props.accentColor];
 
   const canvas = document.createElement('canvas');
@@ -115,129 +238,68 @@ async function downloadQuoteAsImage(
   canvas.height = SIZE;
   const ctx = canvas.getContext('2d')!;
 
-  // ── 1. White background ──────────────────────────────────────────────────────
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, SIZE, SIZE);
+  // ── 1. Background: soft paper texture ────────────────────────────────────────
+  drawPaperTexture(ctx, SIZE);
 
-  // ── 2. Watermark (logo image OR monogram fallback) ───────────────────────────
-  ctx.save();
-  ctx.globalAlpha = 0.06;
-
-  if (logoUrl) {
-    await new Promise<void>((resolve) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        const logoSize = 500;
-        ctx.drawImage(img, (SIZE - logoSize) / 2, (SIZE - logoSize) / 2, logoSize, logoSize);
-        resolve();
-      };
-      img.onerror = () => resolve(); // silently fall through
-      img.src = logoUrl;
-    });
-  } else {
-    // Fallback: "LWM" monogram watermark
-    ctx.font = 'bold 320px Georgia, serif';
-    ctx.fillStyle = '#000000';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('LWM', SIZE / 2, SIZE / 2);
-  }
-
-  ctx.restore();
-
-  // ── 3. Accent left bar ───────────────────────────────────────────────────────
-  const accentX = PADDING;
-  const accentY = 170;
-  const accentH = 340;
-  ctx.fillStyle = c.hex;
-  ctx.beginPath();
-  roundRect(ctx, accentX, accentY, 7, accentH, 3.5);
-  ctx.fill();
-
-  // ── 4. Type badge (top-right) ────────────────────────────────────────────────
-  ctx.font = '500 26px system-ui, -apple-system, sans-serif';
-  const badgeW = ctx.measureText(props.highlightValue).width + 48;
-  const badgeH = 46;
-  const badgeX = SIZE - PADDING - badgeW;
-  const badgeY = PADDING + 16;
-  ctx.fillStyle = c.hexLight;
-  ctx.beginPath();
-  roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 23);
-  ctx.fill();
-  ctx.fillStyle = c.hexDark;
-  ctx.textAlign = 'center';
+  // ── 2. Brand row: badge + wordmark (top-left) ────────────────────────────────
+  const brandY = PADDING + 26;
+  drawVerifiedBadge(ctx, PADDING + 26, brandY, 26);
+  ctx.fillStyle = '#1a1a1a';
+  ctx.font = '800 32px Georgia, "Times New Roman", serif';
+  ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
-  ctx.fillText(props.highlightValue, badgeX + badgeW / 2, badgeY + badgeH / 2);
+  try { (ctx as any).letterSpacing = '2px'; } catch {}
+  ctx.fillText('LEARN WITH ME', PADDING + 26 + 26 + 16, brandY);
+  try { (ctx as any).letterSpacing = '0px'; } catch {}
 
-  // ── 5. Section label ─────────────────────────────────────────────────────────
-  ctx.fillStyle = c.hex;
-  ctx.font = '500 22px system-ui, -apple-system, sans-serif';
+  // ── 3. Reference / author (top-right, italic serif) ─────────────────────────
+  const refY = brandY + 90;
+  ctx.fillStyle = '#1a1a1a';
+  ctx.font = 'italic 500 36px Georgia, "Times New Roman", serif';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(props.highlightValue, SIZE - PADDING, refY);
+
+  // ── 4. Quote — two-tone: black clause, then accent-colored clause ───────────
+  const { primary, secondary } = splitForEmphasis(props.quoteText);
+  const maxWidth = SIZE - PADDING * 2;
+  const lineHeight = 66;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
-  ctx.fillText(props.title.toUpperCase(), PADDING + 26, PADDING + 52);
+  ctx.font = '800 52px system-ui, -apple-system, "Segoe UI", sans-serif';
 
-  // ── 6. Quote (serif italic) ──────────────────────────────────────────────────
+  let cursorY = refY + 90;
   ctx.fillStyle = '#111111';
-  ctx.font = 'italic 500 46px Georgia, "Times New Roman", serif';
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  const quoteEndY = wrapText(
-    ctx,
-    `"${props.quoteText}"`,
-    PADDING + 30,
-    accentY + 12,
-    SIZE - PADDING * 2 - 40,
-    66
-  );
+  cursorY = wrapText(ctx, primary, PADDING, cursorY, maxWidth, lineHeight);
 
-  // ── 7. Explanation ───────────────────────────────────────────────────────────
-  const explanationStartY = Math.max(quoteEndY + 36, 580);
-  ctx.fillStyle = '#555555';
-  ctx.font = '400 29px system-ui, -apple-system, sans-serif';
-  const afterExplain = wrapText(
-    ctx,
-    props.bodyExplanation,
-    PADDING,
-    explanationStartY,
-    SIZE - PADDING * 2,
-    44
-  );
-
-  // ── 8. Subtext box (optional) ────────────────────────────────────────────────
-  if (props.subtextLabel && props.subtextContent) {
-    const boxY = Math.max(afterExplain + 24, 780);
-    const boxH = 110;
-    ctx.fillStyle = c.hexLight;
-    ctx.beginPath();
-    roundRect(ctx, PADDING, boxY, SIZE - PADDING * 2, boxH, 12);
-    ctx.fill();
-
-    ctx.fillStyle = c.hexDark;
-    ctx.font = '500 20px system-ui, -apple-system, sans-serif';
-    ctx.textBaseline = 'top';
-    ctx.fillText(props.subtextLabel.toUpperCase(), PADDING + 24, boxY + 18);
-
-    ctx.font = '500 26px system-ui, -apple-system, sans-serif';
-    ctx.fillText(props.subtextContent, PADDING + 24, boxY + 52);
+  if (secondary) {
+    ctx.fillStyle = c.hex;
+    cursorY = wrapText(ctx, secondary, PADDING, cursorY, maxWidth, lineHeight);
   }
 
-  // ── 9. Bottom branding bar ───────────────────────────────────────────────────
-  const barY = SIZE - 96;
-  ctx.fillStyle = '#F5F5F5';
-  ctx.fillRect(0, barY, SIZE, 96);
+  // ── 5. Author line for non-scripture quotes ──────────────────────────────────
+  if (props.type !== 'bible') {
+    ctx.font = 'italic 400 30px Georgia, "Times New Roman", serif';
+    ctx.fillStyle = '#666666';
+    cursorY += 8;
+    ctx.fillText(`— ${props.highlightValue}`, PADDING, cursorY);
+  }
 
-  // Optional: accent line above bar
-  ctx.fillStyle = c.hex;
-  ctx.fillRect(0, barY, SIZE, 3);
+  // ── 6. Icon badges (cross + book), centered near the bottom ─────────────────
+  const iconY = SIZE - 210;
+  const iconR = 44;
+  const gap = 26;
+  drawCrossBadge(ctx, SIZE / 2 - iconR - gap / 2, iconY, iconR);
+  drawBookBadge(ctx, SIZE / 2 + iconR + gap / 2, iconY, iconR);
 
-  ctx.fillStyle = c.hexDark;
-  ctx.font = '500 26px system-ui, -apple-system, sans-serif';
+  // ── 7. Footer link ────────────────────────────────────────────────────────────
+  ctx.fillStyle = '#8a8a86';
+  ctx.font = '500 24px system-ui, -apple-system, sans-serif';
   ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('Learn With Me · learnthebible.vercel.app', SIZE / 2, barY + 48);
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('Follow us here learnthebible.vercel.app', SIZE / 2, SIZE - 90);
 
-  // ── 10. Trigger download ─────────────────────────────────────────────────────
+  // ── 8. Trigger download ───────────────────────────────────────────────────────
   const filename = `quote-${props.highlightValue.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.png`;
   const link = document.createElement('a');
   link.download = filename;
@@ -280,9 +342,7 @@ export default function QuoteCard(props: QuoteCardProps) {
   const handleDownload = useCallback(async () => {
     setDownloading(true);
     try {
-      // Pass your logo URL here, e.g. '/logo.png' or a hosted URL.
-      // Leave undefined to use the "LWM" monogram watermark instead.
-      await downloadQuoteAsImage(props, undefined /* '/logo.png' */);
+      await downloadQuoteAsImage(props);
     } catch (err) {
       console.error('Download failed:', err);
     } finally {
@@ -341,7 +401,7 @@ export default function QuoteCard(props: QuoteCardProps) {
 
       {/* Actions */}
       <div className="px-6 pb-5 pt-2 flex items-center gap-2 border-t border-gray-50 flex-wrap">
-        {/* ↓ Download as Instagram PNG */}
+        {/* ↓ Download as shareable PNG */}
         <button
           onClick={handleDownload}
           disabled={downloading}
