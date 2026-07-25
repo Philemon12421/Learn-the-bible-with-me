@@ -14,6 +14,7 @@ import {
   PrivacyView, 
   TermsView 
 } from './components/Pages';
+import BlogView from './components/BlogView';
 import AudioPlayer from './components/AudioPlayer';
 
 export default function App() {
@@ -43,6 +44,7 @@ export default function App() {
       case 'contact': return <ContactView />;
       case 'privacy': return <PrivacyView />;
       case 'terms': return <TermsView />;
+      case 'blog': return <BlogView />;
       default: return <HomeView onNavigate={setCurrentView} todayDate={todayDate} />;
     }
   };
@@ -146,7 +148,7 @@ export default function App() {
                 {[
                   ['home','Home'],['bible','Scripture'],['motivation','Motivation'],
                   ['wisdom','Wisdom'],['about','About'],['contact','Contact'],
-                  ['privacy','Privacy'],['terms','Terms']
+                  ['privacy','Privacy'],['terms','Terms'],'blog','Blog'
                 ].map(([view, label]) => (
                   <button key={view} onClick={() => setCurrentView(view as ViewType)} 
                     className="text-left hover:text-amber-700 transition-colors font-medium py-0.5">
