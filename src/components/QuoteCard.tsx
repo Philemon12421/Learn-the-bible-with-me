@@ -59,6 +59,7 @@ function wrapText(
   maxWidth: number,
   lineHeight: number
 ): number {
+  if (!text) return y;
   const words = text.split(' ');
   let line = '';
   let curY = y;
@@ -72,8 +73,11 @@ function wrapText(
       line = test;
     }
   }
-  if (line) ctx.fillText(line, x, curY);
-  return curY + lineHeight;
+  if (line) {
+    ctx.fillText(line, x, curY);
+    curY += lineHeight;
+  }
+  return curY;
 }
 
 function roundRect(
@@ -94,150 +98,236 @@ function roundRect(
   ctx.closePath();
 }
 
-// ─── Main download function ────────────────────────────────────────────────────
+/** Soft, visible off-white paper grain — matches a textured card background. */
+function drawPaperTexture(ctx: CanvasRenderingContext2D, size: number) {
+  ctx.save();
+  ctx.fillStyle = '#f7f7f5';
+  ctx.fillRect(0, 0, size, size);
+
+  let seed = 42;
+  const rand = () => {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  };
+  for (let i = 0; i < 140; i++) {
+    const x = rand() * size;
+    const y = rand() * size;
+    const r = 30 + rand() * 130;
+    const dark = rand() > 0.5;
+    ctx.globalAlpha = dark ? 0.025 : 0.035;
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+    grad.addColorStop(0, dark ? '#7d7d78' : '#ffffff');
+    grad.addColorStop(1, 'rgba(125,125,120,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
 
 /**
- * Renders a 1080×1080 Instagram-ready PNG of the quote and triggers download.
- *
- * @param logoUrl  Optional URL/path to your logo image for the watermark.
- *                 If omitted, a text monogram ("LWM") is used instead.
+ * Splits a quote into a "primary" (plain) clause and a "secondary" (highlighted)
+ * clause — the secondary clause is the "punchline" that gets the yellow-highlight
+ * treatment. Prefers splitting on natural punctuation (":", ";", ",") past the
+ * midpoint of the quote; falls back to an even word-count split.
  */
-async function downloadQuoteAsImage(
-  props: QuoteCardProps,
-  logoUrl?: string
-): Promise<void> {
+function splitForEmphasis(text: string): { primary: string; secondary: string } {
+  const breakChars = [':', ';', ','];
+  let bestIdx = -1;
+  for (const ch of breakChars) {
+    const idx = text.indexOf(ch);
+    if (idx > text.length * 0.35 && idx < text.length * 0.8) {
+      bestIdx = idx;
+      break;
+    }
+  }
+  if (bestIdx === -1) {
+    const words = text.split(' ');
+    if (words.length < 4) return { primary: text, secondary: '' };
+    const mid = Math.ceil(words.length / 2);
+    return {
+      primary: words.slice(0, mid).join(' '),
+      secondary: words.slice(mid).join(' '),
+    };
+  }
+  return {
+    primary: text.slice(0, bestIdx + 1).trim(),
+    secondary: text.slice(bestIdx + 1).trim(),
+  };
+}
+
+/** Truncates long explanation copy at a word boundary so it never overflows the card. */
+function truncate(text: string, maxChars: number): string {
+  if (text.length <= maxChars) return text;
+  const cut = text.slice(0, maxChars);
+  const lastSpace = cut.lastIndexOf(' ');
+  return cut.slice(0, lastSpace > 0 ? lastSpace : maxChars).trim() + '…';
+}
+
+/**
+ * Word-wraps a quote where a trailing "emphasized" clause gets a yellow highlight
+ * behind bold-italic text, while the rest renders as plain serif text — matching
+ * the highlighted-phrase style used across the brand's shareable quote cards.
+ * Each wrapped line gets its own highlight box, so the highlight breaks naturally
+ * at line boundaries instead of stretching across the full width.
+ */
+function wrapEmphasizedQuote(
+  ctx: CanvasRenderingContext2D,
+  primary: string,
+  secondary: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+  fontSize: number,
+  highlightHex: string
+): number {
+  const normalFont = `400 ${fontSize}px Georgia, "Times New Roman", serif`;
+  const emphasisFont = `700 italic ${fontSize}px Georgia, "Times New Roman", serif`;
+
+  const words: { text: string; emphasize: boolean }[] = [
+    ...primary.split(' ').filter(Boolean).map(w => ({ text: w, emphasize: false })),
+    ...secondary.split(' ').filter(Boolean).map(w => ({ text: w, emphasize: true })),
+  ];
+
+  let line: typeof words = [];
+  let curY = y;
+
+  const widthOf = (w: { text: string; emphasize: boolean }) => {
+    ctx.font = w.emphasize ? emphasisFont : normalFont;
+    return ctx.measureText(w.text + ' ').width;
+  };
+
+  const flushLine = () => {
+    if (line.length === 0) return;
+    let curX = x;
+    const positions = line.map(w => {
+      const width = widthOf(w);
+      const pos = { w, x: curX, width };
+      curX += width;
+      return pos;
+    });
+
+    // Draw highlight boxes behind consecutive emphasized runs on this line.
+    let i = 0;
+    while (i < positions.length) {
+      if (positions[i].w.emphasize) {
+        let j = i;
+        let runWidth = 0;
+        while (j < positions.length && positions[j].w.emphasize) {
+          runWidth += positions[j].width;
+          j++;
+        }
+        ctx.fillStyle = highlightHex;
+        ctx.beginPath();
+        roundRect(ctx, positions[i].x - 6, curY - fontSize * 0.82, runWidth - 4, fontSize * 1.18, 4);
+        ctx.fill();
+        i = j;
+      } else {
+        i++;
+      }
+    }
+
+    // Draw the words on top of any highlight boxes.
+    for (const p of positions) {
+      ctx.font = p.w.emphasize ? emphasisFont : normalFont;
+      ctx.fillStyle = '#111111';
+      ctx.fillText(p.w.text, p.x, curY);
+    }
+    curY += lineHeight;
+  };
+
+  for (const w of words) {
+    const testLine = [...line, w];
+    const total = testLine.reduce((sum, tw) => sum + widthOf(tw), 0);
+    if (total > maxWidth && line.length > 0) {
+      flushLine();
+      line = [w];
+    } else {
+      line = testLine;
+    }
+  }
+  flushLine();
+  return curY;
+}
+
+// ─── Main download function ────────────────────────────────────────────────────
+
+const KICKER_LABEL: Record<QuoteCardProps['type'], string> = {
+  bible: 'Inspire Through Bible',
+  motivation: 'Daily Motivation',
+  wisdom: 'Words of Wisdom',
+};
+
+/**
+ * Renders a 1080×1080 share-ready PNG of the quote — clean textured background,
+ * quote-mark kicker, big serif reference, plain text with a highlighted "punchline"
+ * clause, a real explanation paragraph, and a footer link — then triggers a download.
+ */
+async function downloadQuoteAsImage(props: QuoteCardProps): Promise<void> {
   const SIZE = 1080;
-  const PADDING = 80;
+  const PADDING = 88;
   const c = COLOR_MAP[props.accentColor];
+  const maxWidth = SIZE - PADDING * 2;
 
   const canvas = document.createElement('canvas');
   canvas.width = SIZE;
   canvas.height = SIZE;
   const ctx = canvas.getContext('2d')!;
 
-  // ── 1. White background ──────────────────────────────────────────────────────
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, SIZE, SIZE);
+  // ── 1. Background: soft paper texture ────────────────────────────────────────
+  drawPaperTexture(ctx, SIZE);
 
-  // ── 2. Watermark (logo image OR monogram fallback) ───────────────────────────
-  ctx.save();
-  ctx.globalAlpha = 0.06;
-
-  if (logoUrl) {
-    await new Promise<void>((resolve) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        const logoSize = 500;
-        ctx.drawImage(img, (SIZE - logoSize) / 2, (SIZE - logoSize) / 2, logoSize, logoSize);
-        resolve();
-      };
-      img.onerror = () => resolve(); // silently fall through
-      img.src = logoUrl;
-    });
-  } else {
-    // Fallback: "LWM" monogram watermark
-    ctx.font = 'bold 320px Georgia, serif';
-    ctx.fillStyle = '#000000';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('LWM', SIZE / 2, SIZE / 2);
-  }
-
-  ctx.restore();
-
-  // ── 3. Accent left bar ───────────────────────────────────────────────────────
-  const accentX = PADDING;
-  const accentY = 170;
-  const accentH = 340;
-  ctx.fillStyle = c.hex;
-  ctx.beginPath();
-  roundRect(ctx, accentX, accentY, 7, accentH, 3.5);
-  ctx.fill();
-
-  // ── 4. Type badge (top-right) ────────────────────────────────────────────────
-  ctx.font = '500 26px system-ui, -apple-system, sans-serif';
-  const badgeW = ctx.measureText(props.highlightValue).width + 48;
-  const badgeH = 46;
-  const badgeX = SIZE - PADDING - badgeW;
-  const badgeY = PADDING + 16;
-  ctx.fillStyle = c.hexLight;
-  ctx.beginPath();
-  roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 23);
-  ctx.fill();
-  ctx.fillStyle = c.hexDark;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(props.highlightValue, badgeX + badgeW / 2, badgeY + badgeH / 2);
-
-  // ── 5. Section label ─────────────────────────────────────────────────────────
-  ctx.fillStyle = c.hex;
-  ctx.font = '500 22px system-ui, -apple-system, sans-serif';
+  // ── 2. Kicker: quote-mark glyph + label (top-left) ───────────────────────────
+  let cursorY = PADDING + 46;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
-  ctx.fillText(props.title.toUpperCase(), PADDING + 26, PADDING + 52);
+  ctx.fillStyle = c.hex;
+  ctx.font = '700 74px Georgia, "Times New Roman", serif';
+  ctx.fillText('\u201C', PADDING - 6, cursorY + 10);
+  ctx.fillStyle = '#6b6b68';
+  ctx.font = '500 26px system-ui, -apple-system, sans-serif';
+  ctx.fillText(KICKER_LABEL[props.type], PADDING + 58, cursorY - 6);
 
-  // ── 6. Quote (serif italic) ──────────────────────────────────────────────────
+  // ── 3. Big serif reference / author line ─────────────────────────────────────
+  cursorY += 96;
   ctx.fillStyle = '#111111';
-  ctx.font = 'italic 500 46px Georgia, "Times New Roman", serif';
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  const quoteEndY = wrapText(
-    ctx,
-    `"${props.quoteText}"`,
-    PADDING + 30,
-    accentY + 12,
-    SIZE - PADDING * 2 - 40,
-    66
-  );
+  ctx.font = '700 62px Georgia, "Times New Roman", serif';
+  ctx.fillText(props.highlightValue.toUpperCase(), PADDING, cursorY);
 
-  // ── 7. Explanation ───────────────────────────────────────────────────────────
-  const explanationStartY = Math.max(quoteEndY + 36, 580);
-  ctx.fillStyle = '#555555';
-  ctx.font = '400 29px system-ui, -apple-system, sans-serif';
-  const afterExplain = wrapText(
-    ctx,
-    props.bodyExplanation,
-    PADDING,
-    explanationStartY,
-    SIZE - PADDING * 2,
-    44
-  );
+  // ── 4. Quote — plain serif with the punchline clause highlighted ────────────
+  cursorY += 66;
+  const { primary, secondary } = splitForEmphasis(props.quoteText);
+  cursorY = wrapEmphasizedQuote(ctx, primary, secondary, PADDING, cursorY, maxWidth, 58, 40, c.hexLight);
 
-  // ── 8. Subtext box (optional) ────────────────────────────────────────────────
-  if (props.subtextLabel && props.subtextContent) {
-    const boxY = Math.max(afterExplain + 24, 780);
-    const boxH = 110;
-    ctx.fillStyle = c.hexLight;
-    ctx.beginPath();
-    roundRect(ctx, PADDING, boxY, SIZE - PADDING * 2, boxH, 12);
-    ctx.fill();
-
-    ctx.fillStyle = c.hexDark;
-    ctx.font = '500 20px system-ui, -apple-system, sans-serif';
-    ctx.textBaseline = 'top';
-    ctx.fillText(props.subtextLabel.toUpperCase(), PADDING + 24, boxY + 18);
-
-    ctx.font = '500 26px system-ui, -apple-system, sans-serif';
-    ctx.fillText(props.subtextContent, PADDING + 24, boxY + 52);
+  // ── 5. Author line for non-scripture quotes ──────────────────────────────────
+  if (props.type !== 'bible') {
+    cursorY += 6;
+    ctx.font = 'italic 400 30px Georgia, "Times New Roman", serif';
+    ctx.fillStyle = '#666666';
+    ctx.fillText(`— ${props.highlightValue}`, PADDING, cursorY);
+    cursorY += 20;
   }
 
-  // ── 9. Bottom branding bar ───────────────────────────────────────────────────
-  const barY = SIZE - 96;
-  ctx.fillStyle = '#F5F5F5';
-  ctx.fillRect(0, barY, SIZE, 96);
-
-  // Optional: accent line above bar
-  ctx.fillStyle = c.hex;
-  ctx.fillRect(0, barY, SIZE, 3);
-
+  // ── 6. Explanation section ───────────────────────────────────────────────────
+  cursorY += 46;
+  ctx.font = '700 22px system-ui, -apple-system, sans-serif';
   ctx.fillStyle = c.hexDark;
-  ctx.font = '500 26px system-ui, -apple-system, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('Learn With Me · learnthebible.vercel.app', SIZE / 2, barY + 48);
+  ctx.fillText('WHAT THIS MEANS', PADDING, cursorY);
 
-  // ── 10. Trigger download ─────────────────────────────────────────────────────
+  cursorY += 40;
+  ctx.font = '400 27px system-ui, -apple-system, sans-serif';
+  ctx.fillStyle = '#4a4a47';
+  cursorY = wrapText(ctx, truncate(props.bodyExplanation, 260), PADDING, cursorY, maxWidth, 38);
+
+  // ── 7. Footer link ────────────────────────────────────────────────────────────
+  ctx.fillStyle = '#9a9a95';
+  ctx.font = '500 23px system-ui, -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Follow us here learnthebible.vercel.app', SIZE / 2, SIZE - 60);
+
+  // ── 8. Trigger download ───────────────────────────────────────────────────────
   const filename = `quote-${props.highlightValue.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.png`;
   const link = document.createElement('a');
   link.download = filename;
@@ -280,9 +370,7 @@ export default function QuoteCard(props: QuoteCardProps) {
   const handleDownload = useCallback(async () => {
     setDownloading(true);
     try {
-      // Pass your logo URL here, e.g. '/logo.png' or a hosted URL.
-      // Leave undefined to use the "LWM" monogram watermark instead.
-      await downloadQuoteAsImage(props, undefined /* '/logo.png' */);
+      await downloadQuoteAsImage(props);
     } catch (err) {
       console.error('Download failed:', err);
     } finally {
@@ -341,7 +429,7 @@ export default function QuoteCard(props: QuoteCardProps) {
 
       {/* Actions */}
       <div className="px-6 pb-5 pt-2 flex items-center gap-2 border-t border-gray-50 flex-wrap">
-        {/* ↓ Download as Instagram PNG */}
+        {/* ↓ Download as shareable PNG */}
         <button
           onClick={handleDownload}
           disabled={downloading}
