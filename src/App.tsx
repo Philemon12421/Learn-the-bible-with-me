@@ -147,8 +147,8 @@ export default function App() {
               <div className="grid grid-cols-2 gap-1.5 text-xs text-gray-600">
                 {[
                   ['home','Home'],['bible','Scripture'],['motivation','Motivation'],
-                  ['wisdom','Wisdom'],['about','About'],['contact','Contact'],
-                  ['privacy','Privacy'],['terms','Terms'],'blog','Blog'
+                  ['wisdom','Wisdom'],['blog','Blog'],['about','About'],['contact','Contact'],
+                  ['privacy','Privacy'],['terms','Terms']
                 ].map(([view, label]) => (
                   <button key={view} onClick={() => setCurrentView(view as ViewType)} 
                     className="text-left hover:text-amber-700 transition-colors font-medium py-0.5">
