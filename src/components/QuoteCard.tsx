@@ -101,28 +101,11 @@ function roundRect(
 /** Soft, visible off-white paper grain — matches a textured card background. */
 function drawPaperTexture(ctx: CanvasRenderingContext2D, width: number, height: number) {
   ctx.save();
-  ctx.fillStyle = '#f7f7f5';
+  const grad = ctx.createLinearGradient(0, 0, width, height);
+  grad.addColorStop(0, '#ffffff');
+  grad.addColorStop(1, '#f8f9fa');
+  ctx.fillStyle = grad;
   ctx.fillRect(0, 0, width, height);
-
-  let seed = 42;
-  const rand = () => {
-    seed = (seed * 9301 + 49297) % 233280;
-    return seed / 233280;
-  };
-  for (let i = 0; i < 140; i++) {
-    const x = rand() * width;
-    const y = rand() * height;
-    const r = 30 + rand() * 130;
-    const dark = rand() > 0.5;
-    ctx.globalAlpha = dark ? 0.025 : 0.035;
-    const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
-    grad.addColorStop(0, dark ? '#7d7d78' : '#ffffff');
-    grad.addColorStop(1, 'rgba(125,125,120,0)');
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fill();
-  }
   ctx.restore();
 }
 
@@ -183,8 +166,8 @@ function wrapEmphasizedQuote(
   fontSize: number,
   highlightHex: string
 ): number {
-  const normalFont = `400 ${fontSize}px Georgia, "Times New Roman", serif`;
-  const emphasisFont = `700 italic ${fontSize}px Georgia, "Times New Roman", serif`;
+  const normalFont = `700 ${fontSize}px Georgia, "Times New Roman", serif`;
+  const emphasisFont = `900 italic ${fontSize}px Georgia, "Times New Roman", serif`;
 
   const words: { text: string; emphasize: boolean }[] = [
     ...primary.split(' ').filter(Boolean).map(w => ({ text: w, emphasize: false })),
@@ -266,6 +249,7 @@ const KICKER_LABEL: Record<QuoteCardProps['type'], string> = {
  * clause, a real explanation paragraph, and a footer link — then triggers a download.
  */
 async function downloadQuoteAsImage(props: QuoteCardProps): Promise<void> {
+  const SCALE = 2; // For ultra-high quality
   const WIDTH = 1080;
   const HEIGHT = 1350;
   const PADDING = 88;
@@ -273,9 +257,14 @@ async function downloadQuoteAsImage(props: QuoteCardProps): Promise<void> {
   const maxWidth = WIDTH - PADDING * 2;
 
   const canvas = document.createElement('canvas');
-  canvas.width = WIDTH;
-  canvas.height = HEIGHT;
+  canvas.width = WIDTH * SCALE;
+  canvas.height = HEIGHT * SCALE;
   const ctx = canvas.getContext('2d')!;
+  ctx.scale(SCALE, SCALE);
+
+  // High quality smoothing
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
 
   // ── 1. Background: soft paper texture ────────────────────────────────────────
   drawPaperTexture(ctx, WIDTH, HEIGHT);
@@ -300,12 +289,12 @@ async function downloadQuoteAsImage(props: QuoteCardProps): Promise<void> {
   // ── 4. Quote — plain serif with the punchline clause highlighted ────────────
   cursorY += 66;
   const { primary, secondary } = splitForEmphasis(props.quoteText);
-  cursorY = wrapEmphasizedQuote(ctx, primary, secondary, PADDING, cursorY, maxWidth, 58, 40, c.hexLight);
+  cursorY = wrapEmphasizedQuote(ctx, primary, secondary, PADDING, cursorY, maxWidth, 58, 40, "#FFE600");
 
   // ── 5. Author line for non-scripture quotes ──────────────────────────────────
   if (props.type !== 'bible') {
     cursorY += 6;
-    ctx.font = 'italic 400 30px Georgia, "Times New Roman", serif';
+    ctx.font = 'italic 700 32px Georgia, "Times New Roman", serif';
     ctx.fillStyle = '#666666';
     ctx.fillText(`— ${props.highlightValue}`, PADDING, cursorY);
     cursorY += 20;
@@ -326,10 +315,10 @@ async function downloadQuoteAsImage(props: QuoteCardProps): Promise<void> {
   ctx.fillStyle = '#9a9a95';
   ctx.font = '500 23px system-ui, -apple-system, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('Follow us here learnthebible.vercel.app', WIDTH / 2, HEIGHT - 60);
+  ctx.fillText('Follow us here learnthebible.vercel.app | #Motivation #Inspiration #DailyQuote #Viral #LifeLessons', WIDTH / 2, HEIGHT - 60);
 
   // ── 8. Trigger download ───────────────────────────────────────────────────────
-  const filename = `quote-${props.highlightValue.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.png`;
+  const filename = `best-inspirational-viral-quote-${props.highlightValue.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.png`;
   const link = document.createElement('a');
   link.download = filename;
   link.href = canvas.toDataURL('image/png');
