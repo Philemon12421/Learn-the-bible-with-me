@@ -99,10 +99,10 @@ function roundRect(
 }
 
 /** Soft, visible off-white paper grain — matches a textured card background. */
-function drawPaperTexture(ctx: CanvasRenderingContext2D, size: number) {
+function drawPaperTexture(ctx: CanvasRenderingContext2D, width: number, height: number) {
   ctx.save();
   ctx.fillStyle = '#f7f7f5';
-  ctx.fillRect(0, 0, size, size);
+  ctx.fillRect(0, 0, width, height);
 
   let seed = 42;
   const rand = () => {
@@ -110,8 +110,8 @@ function drawPaperTexture(ctx: CanvasRenderingContext2D, size: number) {
     return seed / 233280;
   };
   for (let i = 0; i < 140; i++) {
-    const x = rand() * size;
-    const y = rand() * size;
+    const x = rand() * width;
+    const y = rand() * height;
     const r = 30 + rand() * 130;
     const dark = rand() > 0.5;
     ctx.globalAlpha = dark ? 0.025 : 0.035;
@@ -266,18 +266,19 @@ const KICKER_LABEL: Record<QuoteCardProps['type'], string> = {
  * clause, a real explanation paragraph, and a footer link — then triggers a download.
  */
 async function downloadQuoteAsImage(props: QuoteCardProps): Promise<void> {
-  const SIZE = 1080;
+  const WIDTH = 1080;
+  const HEIGHT = 1350;
   const PADDING = 88;
   const c = COLOR_MAP[props.accentColor];
-  const maxWidth = SIZE - PADDING * 2;
+  const maxWidth = WIDTH - PADDING * 2;
 
   const canvas = document.createElement('canvas');
-  canvas.width = SIZE;
-  canvas.height = SIZE;
+  canvas.width = WIDTH;
+  canvas.height = HEIGHT;
   const ctx = canvas.getContext('2d')!;
 
   // ── 1. Background: soft paper texture ────────────────────────────────────────
-  drawPaperTexture(ctx, SIZE);
+  drawPaperTexture(ctx, WIDTH, HEIGHT);
 
   // ── 2. Kicker: quote-mark glyph + label (top-left) ───────────────────────────
   let cursorY = PADDING + 46;
@@ -325,7 +326,7 @@ async function downloadQuoteAsImage(props: QuoteCardProps): Promise<void> {
   ctx.fillStyle = '#9a9a95';
   ctx.font = '500 23px system-ui, -apple-system, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('Follow us here learnthebible.vercel.app', SIZE / 2, SIZE - 60);
+  ctx.fillText('Follow us here learnthebible.vercel.app', WIDTH / 2, HEIGHT - 60);
 
   // ── 8. Trigger download ───────────────────────────────────────────────────────
   const filename = `quote-${props.highlightValue.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.png`;
