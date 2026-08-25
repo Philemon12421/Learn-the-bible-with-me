@@ -252,7 +252,7 @@ async function downloadQuoteAsImage(props: QuoteCardProps): Promise<void> {
   const SCALE = 2; // For ultra-high quality
   const WIDTH = 1080;
   const HEIGHT = 1350;
-  const PADDING = 88;
+  const PADDING = 100;
   const c = COLOR_MAP[props.accentColor];
   const maxWidth = WIDTH - PADDING * 2;
 
@@ -274,27 +274,27 @@ async function downloadQuoteAsImage(props: QuoteCardProps): Promise<void> {
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = c.hex;
-  ctx.font = '700 74px Georgia, "Times New Roman", serif';
+  ctx.font = '700 96px Georgia, "Times New Roman", serif';
   ctx.fillText('\u201C', PADDING - 6, cursorY + 10);
   ctx.fillStyle = '#6b6b68';
-  ctx.font = '500 26px system-ui, -apple-system, sans-serif';
+  ctx.font = '700 36px system-ui, -apple-system, sans-serif';
   ctx.fillText(KICKER_LABEL[props.type], PADDING + 58, cursorY - 6);
 
   // ── 3. Big serif reference / author line ─────────────────────────────────────
   cursorY += 96;
   ctx.fillStyle = '#111111';
-  ctx.font = '700 62px Georgia, "Times New Roman", serif';
+  ctx.font = '900 84px Georgia, "Times New Roman", serif';
   ctx.fillText(props.highlightValue.toUpperCase(), PADDING, cursorY);
 
   // ── 4. Quote — plain serif with the punchline clause highlighted ────────────
-  cursorY += 66;
+  cursorY += 100;
   const { primary, secondary } = splitForEmphasis(props.quoteText);
-  cursorY = wrapEmphasizedQuote(ctx, primary, secondary, PADDING, cursorY, maxWidth, 58, 40, "#FFE600");
+  cursorY = wrapEmphasizedQuote(ctx, primary, secondary, PADDING, cursorY, maxWidth, 90, 68, "#FFE600");
 
   // ── 5. Author line for non-scripture quotes ──────────────────────────────────
   if (props.type !== 'bible') {
     cursorY += 6;
-    ctx.font = 'italic 700 32px Georgia, "Times New Roman", serif';
+    ctx.font = 'italic 700 48px Georgia, "Times New Roman", serif';
     ctx.fillStyle = '#666666';
     ctx.fillText(`— ${props.highlightValue}`, PADDING, cursorY);
     cursorY += 20;
@@ -302,18 +302,18 @@ async function downloadQuoteAsImage(props: QuoteCardProps): Promise<void> {
 
   // ── 6. Explanation section ───────────────────────────────────────────────────
   cursorY += 46;
-  ctx.font = '700 22px system-ui, -apple-system, sans-serif';
+  ctx.font = '800 32px system-ui, -apple-system, sans-serif';
   ctx.fillStyle = c.hexDark;
   ctx.fillText('WHAT THIS MEANS', PADDING, cursorY);
 
   cursorY += 40;
-  ctx.font = '400 27px system-ui, -apple-system, sans-serif';
+  ctx.font = '500 38px system-ui, -apple-system, sans-serif';
   ctx.fillStyle = '#4a4a47';
-  cursorY = wrapText(ctx, truncate(props.bodyExplanation, 260), PADDING, cursorY, maxWidth, 38);
+  cursorY = wrapText(ctx, truncate(props.bodyExplanation, 260), PADDING, cursorY, maxWidth, 54);
 
   // ── 7. Footer link ────────────────────────────────────────────────────────────
   ctx.fillStyle = '#9a9a95';
-  ctx.font = '500 23px system-ui, -apple-system, sans-serif';
+  ctx.font = '700 28px system-ui, -apple-system, sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText('Follow us here learnthebible.vercel.app | #Motivation #Inspiration #DailyQuote #Viral #LifeLessons', WIDTH / 2, HEIGHT - 60);
 
