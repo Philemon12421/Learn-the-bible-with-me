@@ -1,6 +1,7 @@
 import { BibleVerse, MotivationalQuote, WiseSaying } from './types';
 
-// 40 Bible verses with references, premium text, explanations, and reflections
+// General fallback pool — used for any month that doesn't have its own
+// dedicated set below (see BIBLE_VERSES_BY_MONTH).
 export const BIBLE_VERSES: BibleVerse[] = [
   {
     id: 'b1',
@@ -283,6 +284,144 @@ export const BIBLE_VERSES: BibleVerse[] = [
     reflection: 'Holy Spirit, grow Your fruit in me today — not by my striving, but by staying rooted in You, so love, joy, peace, and self-control ripen naturally in my life.'
   }
 ];
+
+// ─── Month-specific verse sets ──────────────────────────────────────────────
+// Dedicated verses for the current month (September) plus the next four
+// (October → January). Explanations here are kept short and direct, as
+// requested — one plain sentence instead of a full devotional paragraph.
+// Any month not listed here (February–August) falls back to BIBLE_VERSES
+// above via the modulo rotation, so nothing else in the app breaks.
+export const BIBLE_VERSES_BY_MONTH: Record<number, BibleVerse[]> = {
+  // September — index 8
+  8: [
+    { id: 'sep-01', reference: 'Ecclesiastes 3:1', text: 'To every thing there is a season, and a time to every purpose under the heaven.', explanation: 'Nothing in your life right now is permanent — this season has a purpose and an end.', reflection: 'Lord, help me trust Your timing instead of rushing or resisting this season.' },
+    { id: 'sep-02', reference: 'Proverbs 16:9', text: 'A man\'s heart deviseth his way: but the Lord directeth his steps.', explanation: 'Plan carefully, but hold your plans loosely — God has the final say on your path.', reflection: 'Father, adjust my steps today even when they don\'t match my plan.' },
+    { id: 'sep-03', reference: 'Philippians 1:6', text: 'He which hath begun a good work in you will perform it until the day of Jesus Christ.', explanation: 'God doesn\'t abandon what He starts in you — the work in progress is still His.', reflection: 'Thank You, Lord, for not giving up on the work You started in me.' },
+    { id: 'sep-04', reference: 'Proverbs 22:6', text: 'Train up a child in the way he should go: and when he is old, he will not depart from it.', explanation: 'What you build into someone early shapes the direction they hold onto for life.', reflection: 'Lord, help me invest patiently in the people I\'m responsible for.' },
+    { id: 'sep-05', reference: 'Ephesians 4:23', text: 'And be renewed in the spirit of your mind.', explanation: 'A fresh start begins in how you think, not just in your circumstances.', reflection: 'Renew my thinking today, Lord, before I renew anything else.' },
+    { id: 'sep-06', reference: '2 Timothy 2:15', text: 'Study to shew thyself approved unto God, a workman that needeth not to be ashamed.', explanation: 'Diligence in learning is an act of respect toward the work you\'ve been given.', reflection: 'Give me discipline today to study and prepare well, not just get by.' },
+    { id: 'sep-07', reference: 'Proverbs 9:10', text: 'The fear of the Lord is the beginning of wisdom.', explanation: 'Real wisdom starts with reverence for God, not just accumulated information.', reflection: 'Lord, let reverence for You shape how I use everything I learn.' },
+    { id: 'sep-08', reference: 'Isaiah 43:19', text: 'Behold, I will do a new thing; now it shall spring forth.', explanation: 'God is already at work on something new, even before you can see it.', reflection: 'Open my eyes, Lord, to what You\'re starting that I haven\'t noticed yet.' },
+    { id: 'sep-09', reference: 'Psalm 90:12', text: 'So teach us to number our days, that we may apply our hearts unto wisdom.', explanation: 'Treating your time as limited is what makes you use it wisely.', reflection: 'Father, help me spend today like it actually matters.' },
+    { id: 'sep-10', reference: 'Proverbs 1:5', text: 'A wise man will hear, and will increase learning.', explanation: 'Wisdom grows through listening, not through always having the answer.', reflection: 'Lord, make me quick to listen today, not quick to assume.' },
+    { id: 'sep-11', reference: 'James 1:22', text: 'Be ye doers of the word, and not hearers only.', explanation: 'Knowing what\'s right only matters once you actually act on it.', reflection: 'Help me act on what I already know today, not just agree with it.' },
+    { id: 'sep-12', reference: 'Proverbs 4:7', text: 'Wisdom is the principal thing; therefore get wisdom.', explanation: 'Of everything worth pursuing, wisdom is worth prioritizing above the rest.', reflection: 'Lord, let me value wisdom above convenience today.' },
+    { id: 'sep-13', reference: 'Psalm 32:8', text: 'I will instruct thee and teach thee in the way which thou shalt go.', explanation: 'God commits to actively guiding you, not just leaving you to figure it out.', reflection: 'Teach me, Lord — I\'m listening for Your direction today.' },
+    { id: 'sep-14', reference: 'Habakkuk 2:2', text: 'Write the vision, and make it plain upon tables.', explanation: 'A clear, written goal is easier to act on than a vague idea in your head.', reflection: 'Help me get honest and specific about what I\'m working toward.' },
+    { id: 'sep-15', reference: 'Proverbs 24:27', text: 'Prepare thy work without, and make it fit for thyself in the field.', explanation: 'Get the groundwork done first — build the foundation before the house.', reflection: 'Lord, give me patience for preparation, not just the finished result.' },
+    { id: 'sep-16', reference: 'Nehemiah 8:10', text: 'The joy of the Lord is your strength.', explanation: 'Joy isn\'t a reward for finishing the work — it\'s fuel to keep going.', reflection: 'Let Your joy carry me through today\'s tasks, Lord, not just my willpower.' },
+    { id: 'sep-17', reference: 'Proverbs 21:5', text: 'The thoughts of the diligent tend only to plenteousness.', explanation: 'Steady, careful effort builds more than quick shortcuts ever do.', reflection: 'Help me choose diligence over the easy shortcut today.' },
+    { id: 'sep-18', reference: 'Galatians 6:4', text: 'Let every man prove his own work.', explanation: 'Measure your progress against your own effort, not against someone else\'s.', reflection: 'Lord, keep my eyes on my own work instead of comparing.' },
+    { id: 'sep-19', reference: 'Psalm 1:2-3', text: 'His delight is in the law of the Lord... he shall be like a tree planted by the rivers of water.', explanation: 'Consistent time in God\'s word is what keeps you steady and fruitful.', reflection: 'Root me deep today, Lord, so I don\'t dry out under pressure.' },
+    { id: 'sep-20', reference: '1 Corinthians 3:6', text: 'I have planted, Apollos watered; but God gave the increase.', explanation: 'You do the work; the actual growth and results are God\'s to give.', reflection: 'Lord, I\'ll do my part today and trust You for the outcome.' }
+  ],
+  // October — index 9
+  9: [
+    { id: 'oct-01', reference: '2 Corinthians 9:6', text: 'He which soweth bountifully shall reap also bountifully.', explanation: 'What you generously put in tends to come back to you the same way.', reflection: 'Lord, make me generous today, not calculating about what I give.' },
+    { id: 'oct-02', reference: 'Psalm 107:1', text: 'O give thanks unto the Lord, for he is good.', explanation: 'Gratitude starts with who God is, before it even gets to what He\'s done.', reflection: 'Thank You, Lord, simply for being good today.' },
+    { id: 'oct-03', reference: 'James 1:2-4', text: 'Count it all joy when ye fall into divers temptations... patience have her perfect work.', explanation: 'Hard seasons are doing something in you that comfort never could.', reflection: 'Help me see what this trial is building in me, Lord.' },
+    { id: 'oct-04', reference: '1 Thessalonians 5:18', text: 'In every thing give thanks: for this is the will of God.', explanation: 'Thankfulness in hard moments, not just good ones, is what\'s asked of us.', reflection: 'Give me a thankful heart today, even in the parts that are hard.' },
+    { id: 'oct-05', reference: 'Psalm 92:1', text: 'It is a good thing to give thanks unto the Lord.', explanation: 'Gratitude isn\'t just polite — it\'s genuinely good for you.', reflection: 'Lord, let gratitude shape my mood today, not circumstances.' },
+    { id: 'oct-06', reference: 'Hosea 10:12', text: 'Sow to yourselves in righteousness, reap in mercy.', explanation: 'What you consistently practice is what eventually defines you.', reflection: 'Help me sow good choices today, trusting the harvest to You.' },
+    { id: 'oct-07', reference: 'Proverbs 11:25', text: 'The liberal soul shall be made fat.', explanation: 'A generous spirit tends to end up more satisfied, not less.', reflection: 'Lord, loosen my grip on what I hold too tightly.' },
+    { id: 'oct-08', reference: 'Deuteronomy 8:18', text: 'Remember the Lord thy God: for it is he that giveth thee power to get wealth.', explanation: 'Whatever ability you have to provide for yourself ultimately traces back to Him.', reflection: 'Thank You, Lord, for the strength and skill You\'ve given me.' },
+    { id: 'oct-09', reference: 'Psalm 65:11', text: 'Thou crownest the year with thy goodness.', explanation: 'Looking back, God\'s goodness shows up across the whole stretch of a year.', reflection: 'Help me notice Your goodness across this past season, Lord.' },
+    { id: 'oct-10', reference: '2 Corinthians 4:16', text: 'Though our outward man perish, yet the inward man is renewed day by day.', explanation: 'Even as circumstances wear you down, God is quietly rebuilding you inside.', reflection: 'Renew me on the inside today, Lord, regardless of what\'s happening outside.' },
+    { id: 'oct-11', reference: 'Romans 5:3-4', text: 'Tribulation worketh patience; and patience, experience; and experience, hope.', explanation: 'Difficulty, handled well, builds character in a specific, traceable order.', reflection: 'Lord, let this hard thing produce patience in me, not bitterness.' },
+    { id: 'oct-12', reference: 'Job 8:7', text: 'Though thy beginning was small, yet thy latter end should greatly increase.', explanation: 'A small, humble start doesn\'t predict a small finish.', reflection: 'Help me not despise small beginnings, Lord.' },
+    { id: 'oct-13', reference: 'Psalm 126:5', text: 'They that sow in tears shall reap in joy.', explanation: 'The effort that costs you the most now can produce the deepest joy later.', reflection: 'Lord, turn what\'s costing me right now into future joy.' },
+    { id: 'oct-14', reference: 'Proverbs 14:23', text: 'In all labour there is profit.', explanation: 'Real work — even unglamorous work — produces something worthwhile.', reflection: 'Help me find value in today\'s unglamorous tasks, Lord.' },
+    { id: 'oct-15', reference: 'Colossians 3:15', text: 'Let the peace of God rule in your hearts... and be ye thankful.', explanation: 'Let peace, not anxiety, be what actually governs your reactions today.', reflection: 'Lord, let Your peace lead instead of my worry.' },
+    { id: 'oct-16', reference: 'Ecclesiastes 11:6', text: 'In the morning sow thy seed, and in the evening withhold not thine hand.', explanation: 'Keep working consistently — you don\'t always know in advance what will succeed.', reflection: 'Give me persistence today, even without guaranteed results.' },
+    { id: 'oct-17', reference: '1 Corinthians 15:58', text: 'Always abounding in the work of the Lord, forasmuch as ye know that your labour is not in vain.', explanation: 'Effort done for God is never actually wasted, even when it feels that way.', reflection: 'Remind me today, Lord, that this effort isn\'t pointless.' },
+    { id: 'oct-18', reference: 'Psalm 30:5', text: 'Weeping may endure for a night, but joy cometh in the morning.', explanation: 'Painful seasons are real, but they aren\'t the final word.', reflection: 'Lord, meet me in tonight\'s sorrow and bring tomorrow\'s joy.' },
+    { id: 'oct-19', reference: 'Proverbs 3:9', text: 'Honour the Lord with thy substance, and with the firstfruits of all thine increase.', explanation: 'What you do with your resources reveals what you actually honor.', reflection: 'Help me put You first with what I have, Lord, not what\'s left over.' },
+    { id: 'oct-20', reference: 'Philippians 4:11', text: 'I have learned, in whatsoever state I am, therewith to be content.', explanation: 'Contentment is a learned skill, not something you\'re just born with.', reflection: 'Teach me contentment today, Lord, regardless of my circumstances.' }
+  ],
+  // November — index 10
+  10: [
+    { id: 'nov-01', reference: 'Psalm 136:1', text: 'O give thanks unto the Lord; for he is good: for his mercy endureth for ever.', explanation: 'His goodness isn\'t occasional — it\'s constant, which is worth thanking Him for.', reflection: 'Lord, thank You for mercy that never runs out.' },
+    { id: 'nov-02', reference: 'Colossians 3:17', text: 'Whatsoever ye do in word or deed, do all in the name of the Lord Jesus, giving thanks.', explanation: 'Gratitude can color everything you say and do, not just special occasions.', reflection: 'Help me do today\'s ordinary tasks with a thankful heart.' },
+    { id: 'nov-03', reference: '1 Chronicles 16:34', text: 'O give thanks unto the Lord; for he is good; for his mercy endureth for ever.', explanation: 'A short, repeatable line of thanks is worth saying often, not just once.', reflection: 'Lord, let this simple thanks become a daily habit for me.' },
+    { id: 'nov-04', reference: 'Psalm 95:2', text: 'Let us come before his presence with thanksgiving.', explanation: 'Thankfulness is a good way to enter God\'s presence, not just leave it.', reflection: 'I come to You now, Lord, with thanks before anything else.' },
+    { id: 'nov-05', reference: 'Ephesians 5:20', text: 'Giving thanks always for all things unto God.', explanation: 'This includes the hard things too — thanks isn\'t limited to the easy parts of life.', reflection: 'Help me find something to thank You for, even in what\'s difficult.' },
+    { id: 'nov-06', reference: 'Psalm 9:1', text: 'I will praise thee, O Lord, with my whole heart.', explanation: 'Half-hearted gratitude is still gratitude, but full-hearted praise is the goal.', reflection: 'Lord, take my whole heart today, not just part of it.' },
+    { id: 'nov-07', reference: '2 Corinthians 2:14', text: 'Now thanks be unto God, which always causeth us to triumph in Christ.', explanation: 'Victory in hard situations comes through Christ, which is worth thanking Him for.', reflection: 'Thank You for the wins I didn\'t earn on my own, Lord.' },
+    { id: 'nov-08', reference: 'Psalm 107:8-9', text: 'Oh that men would praise the Lord for his goodness... he satisfieth the longing soul.', explanation: 'God actually meets the deep longing in you, not just the surface needs.', reflection: 'Satisfy what I\'m really longing for today, Lord.' },
+    { id: 'nov-09', reference: 'Hebrews 13:15', text: 'Let us offer the sacrifice of praise to God continually.', explanation: 'Praise sometimes costs something, especially when it\'s hard to feel grateful.', reflection: 'Help me offer praise today even when I don\'t feel like it.' },
+    { id: 'nov-10', reference: 'Psalm 34:1', text: 'I will bless the Lord at all times: his praise shall continually be in my mouth.', explanation: 'This is a decision to keep praising, not a feeling that just shows up.', reflection: 'Lord, let praise be my default response today.' },
+    { id: 'nov-11', reference: '1 Timothy 4:4', text: 'Every creature of God is good, and nothing to be refused, if it be received with thanksgiving.', explanation: 'Receiving something with gratitude changes how you experience it.', reflection: 'Help me receive today\'s blessings with thanks, not indifference.' },
+    { id: 'nov-12', reference: 'Psalm 28:7', text: 'My heart trusted in him, and I am helped: therefore my heart greatly rejoiceth.', explanation: 'Trust and help go together — rejoicing follows once you\'ve actually leaned on Him.', reflection: 'Lord, help me trust You before I see the outcome.' },
+    { id: 'nov-13', reference: 'Deuteronomy 26:11', text: 'Thou shalt rejoice in every good thing which the Lord thy God hath given unto thee.', explanation: 'Rejoicing over what you already have is worth practicing, not just wishing for more.', reflection: 'Help me celebrate what I have today, Lord.' },
+    { id: 'nov-14', reference: 'Psalm 103:2', text: 'Bless the Lord, O my soul, and forget not all his benefits.', explanation: 'It\'s easy to forget His past kindness once a new problem shows up.', reflection: 'Remind me today, Lord, of what You\'ve already done for me.' },
+    { id: 'nov-15', reference: 'Romans 12:12', text: 'Rejoicing in hope; patient in tribulation; continuing instant in prayer.', explanation: 'Hope, patience, and prayer work together to carry you through hard seasons.', reflection: 'Lord, keep me hopeful, patient, and prayerful today.' },
+    { id: 'nov-16', reference: 'Psalm 145:3', text: 'Great is the Lord, and greatly to be praised.', explanation: 'His greatness is the actual reason praise makes sense at all.', reflection: 'Help me see how great You truly are today, Lord.' },
+    { id: 'nov-17', reference: 'Luke 17:15-16', text: 'One of them, when he saw that he was healed, turned back, and with a loud voice glorified God.', explanation: 'Out of ten people healed, only one came back to say thank you.', reflection: 'Lord, help me be the one who remembers to say thank You.' },
+    { id: 'nov-18', reference: 'Psalm 118:1', text: 'O give thanks unto the Lord; for he is good.', explanation: 'A short, simple line — but worth actually saying out loud today.', reflection: 'Thank You, Lord. Simply, thank You.' },
+    { id: 'nov-19', reference: 'Proverbs 17:22', text: 'A merry heart doeth good like a medicine.', explanation: 'A genuinely joyful outlook has a real, physical effect on you.', reflection: 'Lord, lighten my heart today, not just my circumstances.' },
+    { id: 'nov-20', reference: 'Colossians 2:6-7', text: 'Rooted and built up in him... abounding therein with thanksgiving.', explanation: 'A life rooted in Christ naturally overflows into thankfulness.', reflection: 'Root me deeper in You today, Lord, and let thanks follow.' }
+  ],
+  // December — index 11
+  11: [
+    { id: 'dec-01', reference: 'Isaiah 9:6', text: 'Unto us a child is born, unto us a son is given... his name shall be called Wonderful, Counsellor, The mighty God.', explanation: 'The names given to this child describe exactly who He is, not just a title.', reflection: 'Lord, let this season remind me who Jesus actually is.' },
+    { id: 'dec-02', reference: 'Luke 2:11', text: 'For unto you is born this day... a Saviour, which is Christ the Lord.', explanation: 'This news was personal — a Savior born specifically for you.', reflection: 'Thank You for a Savior born for me, not just for the world in general.' },
+    { id: 'dec-03', reference: 'Matthew 1:23', text: 'They shall call his name Emmanuel, which being interpreted is, God with us.', explanation: 'Christmas is fundamentally about God choosing to be present with us.', reflection: 'Remind me today, Lord, that You are with me right now.' },
+    { id: 'dec-04', reference: 'Isaiah 7:14', text: 'Behold, a virgin shall conceive, and bear a son, and shall call his name Immanuel.', explanation: 'This promise was made centuries before it happened, and it still came true.', reflection: 'Help me trust Your promises today the way this one came true.' },
+    { id: 'dec-05', reference: 'Luke 2:14', text: 'Glory to God in the highest, and on earth peace, good will toward men.', explanation: 'Heaven\'s celebration and earth\'s peace are connected in this one moment.', reflection: 'Let Your peace, not busyness, define my Christmas season.' },
+    { id: 'dec-06', reference: 'Titus 2:11', text: 'The grace of God that bringeth salvation hath appeared to all men.', explanation: 'This grace wasn\'t limited to a select few — it appeared for everyone.', reflection: 'Thank You, Lord, that Your grace includes me.' },
+    { id: 'dec-07', reference: 'John 1:14', text: 'The Word was made flesh, and dwelt among us.', explanation: 'God didn\'t just speak from a distance — He became one of us.', reflection: 'Help me grasp today what it means that You came close.' },
+    { id: 'dec-08', reference: 'Luke 1:37', text: 'For with God nothing shall be impossible.', explanation: 'The impossible birth announced in this chapter is proof this promise is real.', reflection: 'Lord, remind me today of what You\'ve made possible before.' },
+    { id: 'dec-09', reference: 'Micah 5:2', text: 'Out of thee shall he come forth unto me that is to be ruler in Israel.', explanation: 'God chose a small, overlooked town for His biggest announcement.', reflection: 'Help me trust that small, overlooked places matter to You too.' },
+    { id: 'dec-10', reference: 'Galatians 4:4-5', text: 'When the fulness of the time was come, God sent forth his Son.', explanation: 'This wasn\'t rushed or delayed — it happened at exactly the right time.', reflection: 'Lord, help me trust Your timing in my own life right now.' },
+    { id: 'dec-11', reference: 'John 3:16', text: 'For God so loved the world, that he gave his only begotten Son.', explanation: 'Christmas traces back to one motive: love, and a costly gift because of it.', reflection: 'Thank You, Lord, for loving me enough to give this much.' },
+    { id: 'dec-12', reference: 'Luke 2:10', text: 'Fear not: for, behold, I bring you good tidings of great joy.', explanation: 'The very first instruction attached to this news was: don\'t be afraid.', reflection: 'Replace my fear today, Lord, with this good news instead.' },
+    { id: 'dec-13', reference: 'Isaiah 60:1', text: 'Arise, shine; for thy light is come.', explanation: 'Light has already arrived — the response asked of you is to rise and reflect it.', reflection: 'Help me shine what You\'ve already given me, Lord.' },
+    { id: 'dec-14', reference: 'Psalm 96:11', text: 'Let the heavens rejoice, and let the earth be glad.', explanation: 'This is an invitation to celebration that includes all of creation, not just people.', reflection: 'Lord, let my gladness today match what heaven already knows.' },
+    { id: 'dec-15', reference: 'Titus 3:4', text: 'The kindness and love of God our Saviour toward man appeared.', explanation: 'God\'s character became visible, not just theoretical, in this event.', reflection: 'Help me see Your kindness clearly today, Lord.' },
+    { id: 'dec-16', reference: 'Matthew 2:10', text: 'When they saw the star, they rejoiced with exceeding great joy.', explanation: 'These travelers had been searching a long time — the arrival was worth the wait.', reflection: 'Lord, let me rejoice like this over what You\'ve brought me to.' },
+    { id: 'dec-17', reference: '1 John 4:9', text: 'God sent his only begotten Son into the world, that we might live through him.', explanation: 'The purpose behind this gift was specifically your life, not just a symbolic gesture.', reflection: 'Thank You for a gift with my actual life in mind, Lord.' },
+    { id: 'dec-18', reference: 'Luke 2:19', text: 'Mary kept all these things, and pondered them in her heart.', explanation: 'Not every response to God\'s work needs to be loud — some things are worth quietly treasuring.', reflection: 'Help me slow down today and treasure what You\'re doing, Lord.' },
+    { id: 'dec-19', reference: 'Isaiah 40:5', text: 'The glory of the Lord shall be revealed, and all flesh shall see it together.', explanation: 'What God reveals isn\'t meant to stay hidden — it\'s meant to be seen widely.', reflection: 'Lord, let Your glory be visible through me today.' },
+    { id: 'dec-20', reference: 'Revelation 21:5', text: 'Behold, I make all things new.', explanation: 'God\'s work of renewal didn\'t end at Christmas — it continues even now.', reflection: 'Make something new in me today, Lord, as this year closes.' }
+  ],
+  // January — index 0
+  0: [
+    { id: 'jan-01', reference: 'Philippians 3:13-14', text: 'Forgetting those things which are behind... I press toward the mark.', explanation: 'Progress requires releasing your grip on the past, not just wanting the future.', reflection: 'Lord, help me let go of last year and press toward what\'s ahead.' },
+    { id: 'jan-02', reference: 'Ecclesiastes 3:11', text: 'He hath made every thing beautiful in his time.', explanation: 'Good timing matters as much as good effort — trust His pace, not just your plan.', reflection: 'Help me trust Your timing for this new year, Lord.' },
+    { id: 'jan-03', reference: 'Psalm 37:5', text: 'Commit thy way unto the Lord; trust also in him; and he shall bring it to pass.', explanation: 'Handing God your plans is the first step, not the last resort.', reflection: 'Lord, I commit this year\'s plans to You before I even begin.' },
+    { id: 'jan-04', reference: 'Deuteronomy 31:8', text: 'The Lord, he it is that doth go before thee; he will be with thee.', explanation: 'Whatever this year holds, you\'re not walking into it first or alone.', reflection: 'Thank You for going ahead of me into this new year, Lord.' },
+    { id: 'jan-05', reference: '2 Corinthians 5:17', text: 'Old things are passed away; behold, all things are become new.', explanation: 'A genuine fresh start is possible — last year doesn\'t have to define this one.', reflection: 'Lord, help this actually be a fresh start, not just a new date.' },
+    { id: 'jan-06', reference: 'Psalm 139:23-24', text: 'Search me, O God, and know my heart... lead me in the way everlasting.', explanation: 'A good year starts with honest self-examination, not just new goals.', reflection: 'Search my heart honestly, Lord, before I set my plans.' },
+    { id: 'jan-07', reference: 'Hebrews 12:1', text: 'Let us run with patience the race that is set before us.', explanation: 'This is a marathon, not a sprint — pace matters more than a fast start.', reflection: 'Give me patience for the long run this year, Lord.' },
+    { id: 'jan-08', reference: 'Deuteronomy 30:19', text: 'Choose life, that both thou and thy seed may live.', explanation: 'You have a real choice in front of you — make it deliberately, not by default.', reflection: 'Help me choose well today, Lord, not just drift.' },
+    { id: 'jan-09', reference: 'Proverbs 4:25-26', text: 'Let thine eyes look right on... ponder the path of thy feet.', explanation: 'Stay focused on where you\'re actually headed, not distracted by every direction.', reflection: 'Keep my focus steady this year, Lord.' },
+    { id: 'jan-10', reference: 'Psalm 51:10', text: 'Create in me a clean heart, O God; and renew a right spirit within me.', explanation: 'A new year is a good moment to ask for a genuinely renewed heart, not just new habits.', reflection: 'Renew my heart this year, Lord, not just my routine.' },
+    { id: 'jan-11', reference: 'Ephesians 5:15-16', text: 'See then that ye walk circumspectly... redeeming the time.', explanation: 'Being intentional with your time is a skill worth practicing this year.', reflection: 'Help me use my time well this year, Lord.' },
+    { id: 'jan-12', reference: 'James 4:14-15', text: 'If the Lord will, we shall live, and do this, or that.', explanation: 'Plan for the year, but hold it with open hands, not tight fists.', reflection: 'Lord, I make plans this year, but Your will comes first.' },
+    { id: 'jan-13', reference: 'Proverbs 27:1', text: 'Boast not thyself of to morrow; for thou knowest not what a day may bring forth.', explanation: 'Confidence about the future should stay humble, since none of it is guaranteed.', reflection: 'Keep me humble about tomorrow, Lord, and present today.' },
+    { id: 'jan-14', reference: 'Psalm 143:10', text: 'Teach me to do thy will; for thou art my God.', explanation: 'A good year isn\'t about doing more — it\'s about doing what He actually wants.', reflection: 'Teach me Your will this year, Lord, not just my ambition.' },
+    { id: 'jan-15', reference: '1 Corinthians 9:24', text: 'Run, that ye may obtain.', explanation: 'Effort matters — showing up in the race is what makes reaching the goal possible.', reflection: 'Give me the discipline to actually run this year, Lord.' },
+    { id: 'jan-16', reference: 'Proverbs 19:21', text: 'There are many devices in a man\'s heart; nevertheless the counsel of the Lord, that shall stand.', explanation: 'You can plan all you want, but His purpose is what ultimately holds.', reflection: 'Lord, let Your purpose stand above my own plans this year.' },
+    { id: 'jan-17', reference: 'Psalm 20:4', text: 'Grant thee according to thine own heart, and fulfil all thy counsel.', explanation: 'This is a prayer worth praying over your own goals this year.', reflection: 'Lord, align my heart\'s desires with Your counsel this year.' },
+    { id: 'jan-18', reference: '2 Peter 3:18', text: 'Grow in grace, and in the knowledge of our Lord and Saviour Jesus Christ.', explanation: 'The real goal this year isn\'t just achievement — it\'s growth in knowing Him.', reflection: 'Let me know You more this year, Lord, above everything else.' },
+    { id: 'jan-19', reference: 'Habakkuk 3:19', text: 'The Lord God is my strength, and he will make my feet like hinds\' feet.', explanation: 'Steady footing on difficult ground is something He provides, not something you produce.', reflection: 'Be my strength this year, Lord, especially on uncertain ground.' },
+    { id: 'jan-20', reference: 'Isaiah 65:17', text: 'For, behold, I create new heavens and a new earth.', explanation: 'God\'s renewal isn\'t limited to your life — He\'s remaking everything, eventually.', reflection: 'Thank You, Lord, that Your renewal is bigger than just this year.' }
+  ]
+};
+
+export function getDailyBibleVerse(date: Date): BibleVerse {
+  const month = date.getMonth();
+  const day = date.getDate();
+  const monthlyPool = BIBLE_VERSES_BY_MONTH[month];
+  if (monthlyPool && monthlyPool.length > 0) {
+    return monthlyPool[(day - 1) % monthlyPool.length];
+  }
+  // Months without a dedicated set (Feb–Aug) fall back to the general pool.
+  const index = (day - 1 + month * 9) % BIBLE_VERSES.length;
+  return BIBLE_VERSES[index];
+}
+
+// ─── Motivational quotes and wise sayings — unchanged ───────────────────────
 
 // 40 Motivational Quotes with authors and actionable, empowering insights
 export const MOTIVATIONAL_QUOTES: MotivationalQuote[] = [
@@ -771,16 +910,6 @@ export const WISE_SAYINGS: WiseSaying[] = [
     explanation: 'Anything genuinely valuable — mastery, character, deep relationships — is built through time and repetition, not discovered through a clever bypass. Respect the process instead of hunting for a way around it.'
   }
 ];
-
-// Helper to get daily items based on day of year/month deterministically
-export function getDailyBibleVerse(date: Date): BibleVerse {
-  // Use day of month (1-31) combined with the month so the pool of 40
-  // rotates further instead of tying every month to the same first 31 items.
-  const day = date.getDate();
-  const month = date.getMonth();
-  const index = (day - 1 + month * 9) % BIBLE_VERSES.length;
-  return BIBLE_VERSES[index];
-}
 
 export function getDailyMotivationalQuote(date: Date): MotivationalQuote {
   const day = date.getDate();
