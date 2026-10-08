@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Home, BookOpen, Sparkles, Compass, HelpCircle, Mail, Shield, Scale, 
+  Home, BookOpen, Sparkles, Compass, Church, HelpCircle, Mail, Shield, Scale, 
   Menu, X, Heart, Facebook
 } from 'lucide-react';
 import { ViewType } from './types';
@@ -17,12 +17,23 @@ import {
 import BlogView from './components/BlogView';
 import AudioPlayer from './components/AudioPlayer';
 import SundayView from './components/SundayView';
+import SplashScreen from './components/SplashScreen';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>('home');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [todayDate] = useState<Date>(new Date());
   const [scrolled, setScrolled] = useState(false);
+
+  // Splash screen: visible controls the fade, mounted keeps it in the DOM
+  // until the fade-out transition actually finishes.
+  const [splashVisible, setSplashVisible] = useState(true);
+  const [splashMounted, setSplashMounted] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setSplashVisible(false), 1500);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -53,6 +64,10 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#f8f7f4] flex flex-col font-sans pb-20 md:pb-0">
+
+      {splashMounted && (
+        <SplashScreen visible={splashVisible} onHidden={() => setSplashMounted(false)} />
+      )}
 
       {/* HEADER */}
       <header className={`sticky top-0 z-40 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-xl shadow-sm border-b border-amber-100/50' : 'bg-white/70 backdrop-blur-md border-b border-gray-100/40'}`}>
@@ -90,7 +105,7 @@ export default function App() {
 
           {/* DESKTOP NAV */}
           <nav className="hidden md:flex items-center gap-0.5" aria-label="Main navigation">
-            {(['home','bible','motivation','wisdom','about','contact'] as ViewType[]).map(v => (
+            {(['home','bible','motivation','wisdom','sunday','about','contact'] as ViewType[]).map(v => (
               <button
                 key={v}
                 onClick={() => setCurrentView(v)}
@@ -149,7 +164,8 @@ export default function App() {
               <div className="grid grid-cols-2 gap-1.5 text-xs text-gray-600">
                 {[
                   ['home','Home'],['bible','Scripture'],['motivation','Motivation'],
-                  ['wisdom','Wisdom'],['blog','Blog'],['about','About'],['contact','Contact'],
+                  ['wisdom','Wisdom'],['sunday','Sunday'],['blog','Blog'],
+                  ['about','About'],['contact','Contact'],
                   ['privacy','Privacy'],['terms','Terms']
                 ].map(([view, label]) => (
                   <button key={view} onClick={() => setCurrentView(view as ViewType)} 
@@ -191,23 +207,24 @@ export default function App() {
       </footer>
 
       {/* MOBILE BOTTOM NAV */}
-      <nav aria-label="Mobile navigation" className="md:hidden fixed bottom-3 inset-x-3 h-16 bg-white/85 backdrop-blur-xl rounded-2xl border border-gray-200/50 shadow-xl flex items-center justify-around px-2 z-40">
+      <nav aria-label="Mobile navigation" className="md:hidden fixed bottom-3 inset-x-3 h-16 bg-white/85 backdrop-blur-xl rounded-2xl border border-gray-200/50 shadow-xl flex items-center justify-around px-1.5 z-40">
         {[
           { view: 'home', icon: <Home className="w-4 h-4" />, label: 'Home' },
           { view: 'bible', icon: <BookOpen className="w-4 h-4" />, label: 'Bible' },
+          { view: 'sunday', icon: <Church className="w-4 h-4" />, label: 'Sunday' },
           { view: 'motivation', icon: <Sparkles className="w-4 h-4" />, label: 'Growth' },
           { view: 'wisdom', icon: <Compass className="w-4 h-4" />, label: 'Wisdom' },
         ].map(({ view, icon, label }) => (
           <button key={view} onClick={() => setCurrentView(view as ViewType)}
-            className={`flex flex-col items-center justify-center w-14 h-12 rounded-xl transition-all ${currentView === view ? 'text-amber-700 bg-amber-50 scale-105' : 'text-gray-400 hover:text-gray-700'}`}>
+            className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all ${currentView === view ? 'text-amber-700 bg-amber-50 scale-105' : 'text-gray-400 hover:text-gray-700'}`}>
             {icon}
-            <span className="text-[9px] font-bold mt-0.5">{label}</span>
+            <span className="text-[8.5px] font-bold mt-0.5">{label}</span>
           </button>
         ))}
         <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className={`flex flex-col items-center justify-center w-14 h-12 rounded-xl transition-all ${isMobileMenuOpen ? 'text-amber-700 bg-amber-50 scale-105' : 'text-gray-400'}`}>
+          className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all ${isMobileMenuOpen ? 'text-amber-700 bg-amber-50 scale-105' : 'text-gray-400'}`}>
           {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-          <span className="text-[9px] font-bold mt-0.5">More</span>
+          <span className="text-[8.5px] font-bold mt-0.5">More</span>
         </button>
       </nav>
 
@@ -223,6 +240,7 @@ export default function App() {
             </div>
             <div className="grid grid-cols-2 gap-2.5">
               {[
+                { view: 'blog', icon: <BookOpen className="w-4 h-4" />, title: 'Blog', desc: 'Longer reads & guides' },
                 { view: 'about', icon: <HelpCircle className="w-4 h-4" />, title: 'About Us', desc: 'Our vision & mission' },
                 { view: 'contact', icon: <Mail className="w-4 h-4" />, title: 'Contact', desc: 'Send a message' },
                 { view: 'privacy', icon: <Shield className="w-4 h-4" />, title: 'Privacy', desc: 'How we protect you' },
