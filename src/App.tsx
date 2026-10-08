@@ -16,6 +16,7 @@ import {
 } from './components/Pages';
 import BlogView from './components/BlogView';
 import AudioPlayer from './components/AudioPlayer';
+import SundayView from './components/SundayView';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>('home');
@@ -45,6 +46,7 @@ export default function App() {
       case 'privacy': return <PrivacyView />;
       case 'terms': return <TermsView />;
       case 'blog': return <BlogView />;
+      case 'sunday': return <SundayView />;
       default: return <HomeView onNavigate={setCurrentView} todayDate={todayDate} />;
     }
   };
