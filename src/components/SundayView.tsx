@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Download, Share2, Copy, Check, Church } from 'lucide-react';
+import { Download, Share2, Copy, Check, Church, X } from 'lucide-react';
+
+const MAX_REFERENCES = 6;
 
 // ─── Date helpers ───────────────────────────────────────────────────────────
 
@@ -65,7 +67,6 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: num
       curY += lineHeight;
       lines++;
       if (maxLines && lines >= maxLines - 1) {
-        // last allowed line — truncate the remainder with an ellipsis
         const remaining = words.slice(i).join(' ');
         let last = line;
         while (ctx.measureText(last + '…').width > maxWidth && last.length > 0) {
@@ -80,6 +81,67 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: num
   }
   if (line) { ctx.fillText(line, x, curY); curY += lineHeight; }
   return curY;
+}
+
+/**
+ * Lays out a row of small pill "chips" (used for scripture references),
+ * centered, wrapping onto additional rows as needed so any number of
+ * references stays readable instead of overflowing or shrinking to fit.
+ */
+function drawChipsRow(
+  ctx: CanvasRenderingContext2D,
+  items: string[],
+  centerX: number,
+  y: number,
+  maxWidth: number,
+  font: string,
+  textColor: string,
+  bgColor: string
+): number {
+  if (items.length === 0) return y;
+  const chipHeight = 42;
+  const gap = 10;
+  const padX = 20;
+
+  ctx.font = font;
+  const chips = items.map(text => ({ text, width: ctx.measureText(text).width + padX * 2 }));
+
+  const rows: typeof chips[] = [];
+  let currentRow: typeof chips = [];
+  let currentWidth = 0;
+  for (const chip of chips) {
+    const addWidth = chip.width + (currentRow.length > 0 ? gap : 0);
+    if (currentWidth + addWidth > maxWidth && currentRow.length > 0) {
+      rows.push(currentRow);
+      currentRow = [chip];
+      currentWidth = chip.width;
+    } else {
+      currentRow.push(chip);
+      currentWidth += addWidth;
+    }
+  }
+  if (currentRow.length) rows.push(currentRow);
+
+  let curY = y;
+  for (const row of rows) {
+    const rowWidth = row.reduce((sum, c) => sum + c.width, 0) + gap * (row.length - 1);
+    let curX = centerX - rowWidth / 2;
+    for (const chip of row) {
+      ctx.fillStyle = bgColor;
+      ctx.beginPath();
+      roundRect(ctx, curX, curY, chip.width, chipHeight, chipHeight / 2);
+      ctx.fill();
+      ctx.fillStyle = textColor;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(chip.text, curX + chip.width / 2, curY + chipHeight / 2 + 1);
+      curX += chip.width + gap;
+    }
+    curY += chipHeight + gap;
+  }
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  return curY - gap + 18;
 }
 
 /** Attempts to load the app's real logo file. Resolves to null on failure
@@ -104,7 +166,6 @@ function drawLogoBadge(ctx: CanvasRenderingContext2D, x: number, y: number, size
     ctx.beginPath();
     roundRect(ctx, x, y, size, size, size * 0.22);
     ctx.clip();
-    // cover-fit the image into the square, matching CSS object-fit: cover
     const scale = Math.max(size / logoImg.width, size / logoImg.height);
     const drawW = logoImg.width * scale;
     const drawH = logoImg.height * scale;
@@ -136,7 +197,6 @@ function drawLogoBadge(ctx: CanvasRenderingContext2D, x: number, y: number, size
  * as dimensional in a still image. */
 function drawMedallion(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
   ctx.save();
-  // soft drop shadow for lift
   ctx.shadowColor = 'rgba(146, 64, 14, 0.35)';
   ctx.shadowBlur = 30;
   ctx.shadowOffsetY = 14;
@@ -151,7 +211,6 @@ function drawMedallion(ctx: CanvasRenderingContext2D, cx: number, cy: number, r:
   ctx.fill();
   ctx.restore();
 
-  // specular highlight to sell the 3D roundness
   ctx.save();
   const highlight = ctx.createRadialGradient(cx - r * 0.38, cy - r * 0.42, 0, cx - r * 0.38, cy - r * 0.42, r * 0.55);
   highlight.addColorStop(0, 'rgba(255,255,255,0.55)');
@@ -162,7 +221,6 @@ function drawMedallion(ctx: CanvasRenderingContext2D, cx: number, cy: number, r:
   ctx.fill();
   ctx.restore();
 
-  // cross on the face
   ctx.save();
   ctx.fillStyle = 'rgba(255,255,255,0.95)';
   const barW = r * 0.16;
@@ -180,7 +238,8 @@ function drawMedallion(ctx: CanvasRenderingContext2D, cx: number, cy: number, r:
 interface SundayShareData {
   sundayLabel: string;
   topic: string;
-  reference: string;
+  preacher: string;
+  references: string[];
   reflection: string;
 }
 
@@ -219,33 +278,48 @@ async function downloadSundayShareImage(data: SundayShareData): Promise<void> {
   ctx.font = 'italic 400 28px Georgia, "Times New Roman", serif';
   ctx.fillText(data.sundayLabel, SIZE / 2, medallionCy + 190);
 
-  let cursorY = medallionCy + 260;
+  let cursorY = medallionCy + 250;
 
-  // Topic / reference badge, if provided
-  const badgeText = [data.topic, data.reference].filter(Boolean).join('  ·  ');
-  if (badgeText) {
-    ctx.font = '700 22px system-ui, -apple-system, sans-serif';
-    const badgeW = ctx.measureText(badgeText).width + 48;
-    const badgeH = 44;
-    const badgeX = SIZE / 2 - badgeW / 2;
-    ctx.fillStyle = '#faeeda';
-    ctx.beginPath();
-    roundRect(ctx, badgeX, cursorY, badgeW, badgeH, 22);
-    ctx.fill();
-    ctx.fillStyle = '#854f0b';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(badgeText, SIZE / 2, cursorY + badgeH / 2 + 1);
-    ctx.textBaseline = 'alphabetic';
-    cursorY += badgeH + 44;
+  // Topic — the sermon title, if given
+  if (data.topic) {
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = '700 32px Georgia, "Times New Roman", serif';
+    ctx.fillText(data.topic, SIZE / 2, cursorY);
+    cursorY += 40;
+  }
+
+  // "by {preacher}", if given
+  if (data.preacher) {
+    ctx.fillStyle = '#8a8a85';
+    ctx.font = 'italic 400 24px Georgia, "Times New Roman", serif';
+    ctx.fillText(`by ${data.preacher}`, SIZE / 2, cursorY);
+    cursorY += 38;
+  }
+
+  if (data.topic || data.preacher) cursorY += 10;
+
+  // Scripture reference chips — any number, wrapping cleanly
+  if (data.references.length > 0) {
+    cursorY = drawChipsRow(
+      ctx,
+      data.references,
+      SIZE / 2,
+      cursorY,
+      maxWidth,
+      '700 21px system-ui, -apple-system, sans-serif',
+      '#854f0b',
+      '#faeeda'
+    );
+    cursorY += 26;
   } else {
-    cursorY += 16;
+    cursorY += 10;
   }
 
   // Reflection text — the heart of the card
   ctx.textAlign = 'left';
   ctx.fillStyle = '#1a1a1a';
-  ctx.font = '400 38px Georgia, "Times New Roman", serif';
-  cursorY = wrapText(ctx, `“${data.reflection}”`, PADDING, cursorY, maxWidth, 52, 7);
+  ctx.font = '400 36px Georgia, "Times New Roman", serif';
+  wrapText(ctx, `“${data.reflection}”`, PADDING, cursorY, maxWidth, 50, 6);
 
   // Footer
   ctx.textAlign = 'center';
@@ -269,7 +343,9 @@ export default function SundayView() {
   const sundayLabel = formatSundayLabel(sunday);
 
   const [topic, setTopic] = useState('');
-  const [reference, setReference] = useState('');
+  const [preacher, setPreacher] = useState('');
+  const [references, setReferences] = useState<string[]>([]);
+  const [referenceInput, setReferenceInput] = useState('');
   const [reflection, setReflection] = useState('');
   const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -282,7 +358,8 @@ export default function SundayView() {
         const parsed = JSON.parse(saved);
         if (parsed.sundayLabel === sundayLabel) {
           setTopic(parsed.topic || '');
-          setReference(parsed.reference || '');
+          setPreacher(parsed.preacher || '');
+          setReferences(Array.isArray(parsed.references) ? parsed.references : []);
           setReflection(parsed.reflection || '');
         }
       }
@@ -292,9 +369,31 @@ export default function SundayView() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({ sundayLabel, topic, reference, reflection }));
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ sundayLabel, topic, preacher, references, reflection }));
     } catch {}
-  }, [sundayLabel, topic, reference, reflection]);
+  }, [sundayLabel, topic, preacher, references, reflection]);
+
+  const addReference = useCallback(() => {
+    const trimmed = referenceInput.trim();
+    if (!trimmed) return;
+    if (references.length >= MAX_REFERENCES) return;
+    if (references.includes(trimmed)) { setReferenceInput(''); return; }
+    setReferences(prev => [...prev, trimmed]);
+    setReferenceInput('');
+  }, [referenceInput, references]);
+
+  const removeReference = useCallback((idx: number) => {
+    setReferences(prev => prev.filter((_, i) => i !== idx));
+  }, []);
+
+  const handleReferenceKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addReference();
+    } else if (e.key === 'Backspace' && referenceInput === '' && references.length > 0) {
+      removeReference(references.length - 1);
+    }
+  }, [addReference, referenceInput, references, removeReference]);
 
   const canShare = reflection.trim().length > 0;
 
@@ -302,31 +401,41 @@ export default function SundayView() {
     if (!canShare) return;
     setGenerating(true);
     try {
-      await downloadSundayShareImage({ sundayLabel, topic: topic.trim(), reference: reference.trim(), reflection: reflection.trim() });
+      await downloadSundayShareImage({
+        sundayLabel,
+        topic: topic.trim(),
+        preacher: preacher.trim(),
+        references,
+        reflection: reflection.trim(),
+      });
     } finally {
       setGenerating(false);
     }
-  }, [canShare, sundayLabel, topic, reference, reflection]);
+  }, [canShare, sundayLabel, topic, preacher, references, reflection]);
+
+  const shareText = useCallback(() => {
+    const refLine = references.length > 0 ? `\n${references.join(' · ')}` : '';
+    const byLine = preacher ? ` — ${preacher}` : '';
+    return `What I learned this Sunday (${sundayLabel}):\n\n"${reflection.trim()}"${refLine}${byLine}\n\nLearn With Me · learnthebible.vercel.app`;
+  }, [sundayLabel, reflection, references, preacher]);
 
   const handleCopy = useCallback(async () => {
     if (!canShare) return;
-    const text = `What I learned this Sunday (${sundayLabel}):\n\n"${reflection.trim()}"${reference ? `\n— ${reference}` : ''}\n\nLearn With Me · learnthebible.vercel.app`;
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(shareText());
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {}
-  }, [canShare, sundayLabel, reflection, reference]);
+  }, [canShare, shareText]);
 
   const handleShare = useCallback(async () => {
     if (!canShare) return;
-    const text = `What I learned this Sunday: "${reflection.trim()}"${reference ? ` — ${reference}` : ''}\n\nLearn With Me · learnthebible.vercel.app`;
     if (navigator.share) {
-      try { await navigator.share({ text, title: 'What I Learned This Sunday' }); } catch {}
+      try { await navigator.share({ text: shareText(), title: 'What I Learned This Sunday' }); } catch {}
     } else {
       await handleCopy();
     }
-  }, [canShare, reflection, reference, handleCopy]);
+  }, [canShare, shareText, handleCopy]);
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 animate-fade-in-up">
@@ -370,15 +479,61 @@ export default function SundayView() {
           </div>
           <div>
             <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 block">
-              Scripture reference <span className="font-normal normal-case text-gray-300">(optional)</span>
+              Sermon by <span className="font-normal normal-case text-gray-300">(optional)</span>
             </label>
             <input
-              value={reference}
-              onChange={e => setReference(e.target.value)}
-              placeholder="e.g. Hebrews 11:1"
-              maxLength={40}
+              value={preacher}
+              onChange={e => setPreacher(e.target.value)}
+              placeholder="e.g. Pastor John Mensah"
+              maxLength={60}
               className="w-full text-sm rounded-xl border border-gray-200 px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-300 transition-all"
             />
+          </div>
+        </div>
+
+        <div>
+          <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 flex items-center justify-between">
+            <span>Scripture reference(s) <span className="font-normal normal-case text-gray-300">(optional)</span></span>
+            <span className="font-normal normal-case text-gray-300">{references.length}/{MAX_REFERENCES}</span>
+          </label>
+
+          {references.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {references.map((ref, i) => (
+                <span key={ref + i} className="inline-flex items-center gap-1 text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-100 rounded-full pl-3 pr-1.5 py-1">
+                  {ref}
+                  <button
+                    type="button"
+                    onClick={() => removeReference(i)}
+                    aria-label={`Remove ${ref}`}
+                    className="p-0.5 rounded-full hover:bg-amber-100 transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <input
+              value={referenceInput}
+              onChange={e => setReferenceInput(e.target.value)}
+              onKeyDown={handleReferenceKeyDown}
+              onBlur={addReference}
+              disabled={references.length >= MAX_REFERENCES}
+              placeholder={references.length >= MAX_REFERENCES ? 'Maximum reached' : 'e.g. Hebrews 11:1 — press Enter to add'}
+              maxLength={40}
+              className="flex-1 text-sm rounded-xl border border-gray-200 px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-300 transition-all disabled:bg-gray-50 disabled:text-gray-300"
+            />
+            <button
+              type="button"
+              onClick={addReference}
+              disabled={!referenceInput.trim() || references.length >= MAX_REFERENCES}
+              className="text-xs font-bold px-4 rounded-xl border border-amber-100 bg-amber-50 text-amber-700 hover:bg-amber-100 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Add
+            </button>
           </div>
         </div>
 
