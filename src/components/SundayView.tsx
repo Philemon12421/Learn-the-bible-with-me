@@ -82,11 +82,37 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: num
   return curY;
 }
 
-/** The app's brand mark — an amber-gradient rounded square with a white cross,
- * matching the real logo's fallback rendering so it never depends on loading
- * an external image file inside the canvas. */
-function drawLogoBadge(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
+/** Attempts to load the app's real logo file. Resolves to null on failure
+ * (missing file, load error) so the caller can fall back gracefully instead
+ * of the share image breaking or showing a blank gap. */
+function loadLogoImage(): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = '/cross.jpeg';
+  });
+}
+
+/** Draws the app's brand mark. Uses the real /cross.jpeg logo when it loaded
+ * successfully (clipped to a rounded square to match the header/footer
+ * treatment); otherwise falls back to a hand-drawn amber cross mark so the
+ * share image still looks intentional rather than broken. */
+function drawLogoBadge(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, logoImg: HTMLImageElement | null) {
   ctx.save();
+  if (logoImg) {
+    ctx.beginPath();
+    roundRect(ctx, x, y, size, size, size * 0.22);
+    ctx.clip();
+    // cover-fit the image into the square, matching CSS object-fit: cover
+    const scale = Math.max(size / logoImg.width, size / logoImg.height);
+    const drawW = logoImg.width * scale;
+    const drawH = logoImg.height * scale;
+    ctx.drawImage(logoImg, x + (size - drawW) / 2, y + (size - drawH) / 2, drawW, drawH);
+    ctx.restore();
+    return;
+  }
+
   const grad = ctx.createLinearGradient(x, y, x + size, y + size);
   grad.addColorStop(0, '#b45309');
   grad.addColorStop(1, '#92400e');
@@ -171,7 +197,8 @@ async function downloadSundayShareImage(data: SundayShareData): Promise<void> {
   drawPaperTexture(ctx, SIZE);
 
   // Logo + wordmark, top-left
-  drawLogoBadge(ctx, PADDING, PADDING, 52);
+  const logoImg = await loadLogoImage();
+  drawLogoBadge(ctx, PADDING, PADDING, 52, logoImg);
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#1a1a1a';
