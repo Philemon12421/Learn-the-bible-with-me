@@ -22,11 +22,19 @@ export default function SplashScreen({ visible, onHidden }: SplashScreenProps) {
       <div className="relative flex items-center justify-center mb-6">
         <span className="splash-ping absolute inline-flex h-20 w-20 rounded-2xl bg-amber-400/30" />
         <span className="splash-ping splash-ping-delay absolute inline-flex h-20 w-20 rounded-2xl bg-amber-400/20" />
-        <div
-          className="relative w-16 h-16 rounded-2xl shadow-lg shadow-amber-200/50 flex items-center justify-center splash-logo"
-          style={{ background: 'linear-gradient(135deg,#b45309,#92400e)' }}
-        >
-          <span className="text-white text-2xl" style={{ lineHeight: 1 }}>✝</span>
+        <div className="relative w-16 h-16 rounded-2xl overflow-hidden shadow-lg shadow-amber-200/50 splash-logo">
+          <img
+            src="/cross.jpeg"
+            alt="Learn With Me"
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              const el = e.currentTarget as HTMLImageElement;
+              el.style.display = 'none';
+              const parent = el.parentElement!;
+              parent.style.background = 'linear-gradient(135deg,#b45309,#92400e)';
+              parent.innerHTML = '<span style="color:white;font-size:28px;display:flex;align-items:center;justify-content:center;height:100%;line-height:1">✝</span>';
+            }}
+          />
         </div>
       </div>
 
