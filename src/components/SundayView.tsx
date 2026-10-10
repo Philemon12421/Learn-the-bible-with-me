@@ -5,11 +5,24 @@ const MAX_REFERENCES = 6;
 
 // ─── Date helpers ───────────────────────────────────────────────────────────
 
-/** Returns the most recent Sunday (today, if today is Sunday). */
-function getMostRecentSunday(): Date {
+/**
+ * Returns the Sunday this page should reference "today":
+ * - Sunday through Wednesday → the Sunday that just happened (0–3 days ago),
+ *   so there's a few days after the service to still log a reflection.
+ * - Thursday through Saturday → the upcoming Sunday (1–3 days away), so the
+ *   page reads correctly in the run-up to it instead of still pointing at
+ *   last week's date.
+ * Example: if today is Saturday Oct 10, this returns Sunday Oct 11.
+ */
+function getRelevantSunday(): Date {
   const now = new Date();
+  const day = now.getDay(); // 0 = Sunday ... 6 = Saturday
   const result = new Date(now);
-  result.setDate(now.getDate() - now.getDay());
+  if (day >= 4) {
+    result.setDate(now.getDate() + (7 - day)); // Thu/Fri/Sat → next Sunday
+  } else {
+    result.setDate(now.getDate() - day); // Sun/Mon/Tue/Wed → most recent Sunday
+  }
   result.setHours(0, 0, 0, 0);
   return result;
 }
@@ -339,7 +352,7 @@ async function downloadSundayShareImage(data: SundayShareData): Promise<void> {
 const DRAFT_KEY = 'lwm-sunday-draft';
 
 export default function SundayView() {
-  const sunday = getMostRecentSunday();
+  const sunday = getRelevantSunday();
   const sundayLabel = formatSundayLabel(sunday);
 
   const [topic, setTopic] = useState('');
