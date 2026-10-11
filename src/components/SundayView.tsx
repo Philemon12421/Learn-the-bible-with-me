@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { Download, Share2, Copy, Check, Church, X } from 'lucide-react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { Download, Share2, Copy, Check, Church, X, Facebook, Instagram, Linkedin, Smartphone } from 'lucide-react';
 
 const MAX_REFERENCES = 6;
 
@@ -246,7 +246,7 @@ function drawMedallion(ctx: CanvasRenderingContext2D, cx: number, cy: number, r:
   ctx.restore();
 }
 
-// ─── Share image generator ──────────────────────────────────────────────────
+// ─── Share image generation ─────────────────────────────────────────────────
 
 interface SundayShareData {
   sundayLabel: string;
@@ -256,7 +256,9 @@ interface SundayShareData {
   reflection: string;
 }
 
-async function downloadSundayShareImage(data: SundayShareData): Promise<void> {
+/** Builds the 1080×1080 share-card canvas. Shared by the download path and
+ * the native-device-share path so the image is identical either way. */
+async function buildSundayCanvas(data: SundayShareData): Promise<HTMLCanvasElement> {
   const SIZE = 1080;
   const PADDING = 88;
   const maxWidth = SIZE - PADDING * 2;
@@ -268,7 +270,6 @@ async function downloadSundayShareImage(data: SundayShareData): Promise<void> {
 
   drawPaperTexture(ctx, SIZE);
 
-  // Logo + wordmark, top-left
   const logoImg = await loadLogoImage();
   drawLogoBadge(ctx, PADDING, PADDING, 52, logoImg);
   ctx.textAlign = 'left';
@@ -277,11 +278,9 @@ async function downloadSundayShareImage(data: SundayShareData): Promise<void> {
   ctx.font = '800 30px Georgia, "Times New Roman", serif';
   ctx.fillText('Learn With Me', PADDING + 52 + 16, PADDING + 26);
 
-  // Medallion, centered
   const medallionCy = PADDING + 190;
   drawMedallion(ctx, SIZE / 2, medallionCy, 92);
 
-  // Kicker + date
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = '#b45309';
@@ -293,7 +292,6 @@ async function downloadSundayShareImage(data: SundayShareData): Promise<void> {
 
   let cursorY = medallionCy + 250;
 
-  // Topic — the sermon title, if given
   if (data.topic) {
     ctx.fillStyle = '#1a1a1a';
     ctx.font = '700 32px Georgia, "Times New Roman", serif';
@@ -301,7 +299,6 @@ async function downloadSundayShareImage(data: SundayShareData): Promise<void> {
     cursorY += 40;
   }
 
-  // "by {preacher}", if given
   if (data.preacher) {
     ctx.fillStyle = '#8a8a85';
     ctx.font = 'italic 400 24px Georgia, "Times New Roman", serif';
@@ -311,7 +308,6 @@ async function downloadSundayShareImage(data: SundayShareData): Promise<void> {
 
   if (data.topic || data.preacher) cursorY += 10;
 
-  // Scripture reference chips — any number, wrapping cleanly
   if (data.references.length > 0) {
     cursorY = drawChipsRow(
       ctx,
@@ -328,23 +324,77 @@ async function downloadSundayShareImage(data: SundayShareData): Promise<void> {
     cursorY += 10;
   }
 
-  // Reflection text — the heart of the card
   ctx.textAlign = 'left';
   ctx.fillStyle = '#1a1a1a';
   ctx.font = '400 36px Georgia, "Times New Roman", serif';
   wrapText(ctx, `“${data.reflection}”`, PADDING, cursorY, maxWidth, 50, 6);
 
-  // Footer
   ctx.textAlign = 'center';
   ctx.fillStyle = '#9a9a95';
   ctx.font = '500 23px system-ui, -apple-system, sans-serif';
   ctx.fillText('Shared from learnthebible.vercel.app', SIZE / 2, SIZE - 60);
 
-  const filename = `sunday-learning-${data.sundayLabel.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.png`;
+  return canvas;
+}
+
+function filenameFor(sundayLabel: string): string {
+  return `sunday-learning-${sundayLabel.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.png`;
+}
+
+async function downloadSundayShareImage(data: SundayShareData): Promise<void> {
+  const canvas = await buildSundayCanvas(data);
   const link = document.createElement('a');
-  link.download = filename;
+  link.download = filenameFor(data.sundayLabel);
   link.href = canvas.toDataURL('image/png');
   link.click();
+}
+
+/** Renders the canvas to an actual image File, for the native share sheet
+ * (the only path that can hand a real image file to another app). */
+async function getSundayImageFile(data: SundayShareData): Promise<File> {
+  const canvas = await buildSundayCanvas(data);
+  const blob: Blob = await new Promise((resolve, reject) => {
+    canvas.toBlob(b => (b ? resolve(b) : reject(new Error('toBlob failed'))), 'image/png');
+  });
+  return new File([blob], filenameFor(data.sundayLabel), { type: 'image/png' });
+}
+
+// ─── Share platforms ─────────────────────────────────────────────────────────
+
+type PlatformId = 'x' | 'linkedin' | 'facebook' | 'whatsapp-status' | 'whatsapp-group' | 'instagram';
+
+const WHATSAPP_ICON = (
+  <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+    <path d="M12.004 2c-5.51 0-9.99 4.49-9.99 10 0 1.77.47 3.43 1.29 4.9L2 22l5.25-1.34c1.42.77 3.03 1.21 4.74 1.21 5.51 0 10-4.49 10-10C22.004 6.49 17.514 2 12.004 2zm5.82 14.12c-.25.7-1.42 1.3-1.95 1.38-.49.07-1.12.09-2.73-.55-2.07-.82-3.41-2.91-3.51-3.05-.1-.13-.82-1.07-.82-2.04 0-.97.51-1.44.69-1.63.18-.19.39-.24.52-.24.13 0 .26 0 .37.01.12.01.27-.04.42.32.16.38.54 1.31.59 1.41.05.1.08.22.01.36-.07.14-.15.23-.23.32-.08.09-.17.19-.24.27-.08.08-.16.17-.07.33.09.15.41.67.88 1.09.6.53 1.11.7 1.27.78.16.08.25.07.34-.03.09-.1.39-.45.49-.61.1-.16.2-.13.34-.08.14.05.88.41 1.03.49.15.08.25.12.29.18.04.07.04.4-.21.1z"/>
+  </svg>
+);
+
+const PLATFORMS: { id: PlatformId; label: string; icon: React.ReactNode; bg: string }[] = [
+  { id: 'x', label: 'X', icon: <X className="w-5 h-5" />, bg: '#000000' },
+  { id: 'linkedin', label: 'LinkedIn', icon: <Linkedin className="w-5 h-5" />, bg: '#0A66C2' },
+  { id: 'instagram', label: 'Instagram', icon: <Instagram className="w-5 h-5" />, bg: 'linear-gradient(135deg,#feda75,#d62976,#4f5bd5)' },
+  { id: 'whatsapp-status', label: 'WA Status', icon: WHATSAPP_ICON, bg: '#25D366' },
+  { id: 'whatsapp-group', label: 'WA Group', icon: WHATSAPP_ICON, bg: '#128C7E' },
+  { id: 'facebook', label: 'Facebook', icon: <Facebook className="w-5 h-5" />, bg: '#1877F2' },
+];
+
+const SITE_URL = 'https://learnthebible.vercel.app';
+
+function noteFor(platform: PlatformId): string {
+  switch (platform) {
+    case 'x':
+      return 'X opened with your caption ready — attach the image that just downloaded before you post.';
+    case 'linkedin':
+      return "LinkedIn opened. LinkedIn doesn't accept a pre-filled caption, so paste it in yourself and attach the downloaded image.";
+    case 'facebook':
+      return "Facebook opened. Paste your caption in and attach the image that just downloaded.";
+    case 'whatsapp-status':
+      return 'WhatsApp opened with your caption — tap your profile photo, choose "Status", and attach the downloaded image.';
+    case 'whatsapp-group':
+      return 'WhatsApp opened with your caption — pick the group you want, then attach the downloaded image.';
+    case 'instagram':
+      return "Instagram doesn't accept posts from websites, so the image just downloaded — open Instagram and share it from your gallery.";
+  }
 }
 
 // ─── Page component ─────────────────────────────────────────────────────────
@@ -362,6 +412,12 @@ export default function SundayView() {
   const [reflection, setReflection] = useState('');
   const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const [shareOpen, setShareOpen] = useState(false);
+  const [caption, setCaption] = useState('');
+  const [activePlatform, setActivePlatform] = useState<PlatformId | null>(null);
+  const [shareNote, setShareNote] = useState<string | null>(null);
+  const [nativeSharing, setNativeSharing] = useState(false);
 
   // Restore an in-progress draft so a refresh mid-week doesn't lose it.
   useEffect(() => {
@@ -410,21 +466,33 @@ export default function SundayView() {
 
   const canShare = reflection.trim().length > 0;
 
+  const shareData: SundayShareData = useMemo(() => ({
+    sundayLabel,
+    topic: topic.trim(),
+    preacher: preacher.trim(),
+    references,
+    reflection: reflection.trim(),
+  }), [sundayLabel, topic, preacher, references, reflection]);
+
+  const canNativeShareFiles = useMemo(() => {
+    if (typeof navigator === 'undefined' || !navigator.share || !navigator.canShare) return false;
+    try {
+      const probe = new File([''], 'probe.png', { type: 'image/png' });
+      return navigator.canShare({ files: [probe] });
+    } catch {
+      return false;
+    }
+  }, []);
+
   const handleDownload = useCallback(async () => {
     if (!canShare) return;
     setGenerating(true);
     try {
-      await downloadSundayShareImage({
-        sundayLabel,
-        topic: topic.trim(),
-        preacher: preacher.trim(),
-        references,
-        reflection: reflection.trim(),
-      });
+      await downloadSundayShareImage(shareData);
     } finally {
       setGenerating(false);
     }
-  }, [canShare, sundayLabel, topic, preacher, references, reflection]);
+  }, [canShare, shareData]);
 
   const shareText = useCallback(() => {
     const refLine = references.length > 0 ? `\n${references.join(' · ')}` : '';
@@ -441,14 +509,66 @@ export default function SundayView() {
     } catch {}
   }, [canShare, shareText]);
 
-  const handleShare = useCallback(async () => {
+  const openShareModal = useCallback(() => {
     if (!canShare) return;
-    if (navigator.share) {
-      try { await navigator.share({ text: shareText(), title: 'What I Learned This Sunday' }); } catch {}
-    } else {
-      await handleCopy();
+    const parts = ['This is what I learnt this Sunday 🙏'];
+    if (topic.trim()) parts.push(topic.trim());
+    setCaption(parts.join(' — '));
+    setShareNote(null);
+    setActivePlatform(null);
+    setShareOpen(true);
+  }, [canShare, topic]);
+
+  const handleNativeShare = useCallback(async () => {
+    setNativeSharing(true);
+    try {
+      const file = await getSundayImageFile(shareData);
+      await navigator.share({ files: [file], text: caption, title: 'What I Learned This Sunday' });
+      setShareOpen(false);
+    } catch {
+      // user cancelled the share sheet, or it failed silently — no action needed
+    } finally {
+      setNativeSharing(false);
     }
-  }, [canShare, shareText, handleCopy]);
+  }, [shareData, caption]);
+
+  const handlePlatformClick = useCallback(async (platform: PlatformId) => {
+    setActivePlatform(platform);
+    try {
+      // Open the destination tab synchronously, as the very first thing in
+      // this handler — before any `await`. Browsers tie window.open's
+      // popup-blocker bypass to the original click's user-gesture context,
+      // which an await (even a fast one, like the image generation below)
+      // can silently lose, causing the tab to get blocked.
+      const encodedCaption = encodeURIComponent(caption);
+      const encodedUrl = encodeURIComponent(SITE_URL);
+
+      switch (platform) {
+        case 'x':
+          window.open(`https://twitter.com/intent/tweet?text=${encodedCaption}`, '_blank', 'noopener,noreferrer');
+          break;
+        case 'linkedin':
+          window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`, '_blank', 'noopener,noreferrer');
+          break;
+        case 'facebook':
+          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedCaption}`, '_blank', 'noopener,noreferrer');
+          break;
+        case 'whatsapp-status':
+        case 'whatsapp-group':
+          window.open(`https://wa.me/?text=${encodedCaption}`, '_blank', 'noopener,noreferrer');
+          break;
+        case 'instagram':
+          window.open('https://instagram.com/', '_blank', 'noopener,noreferrer');
+          break;
+      }
+
+      // Now generate and download the image — this part can safely be async.
+      await downloadSundayShareImage(shareData);
+      setShareNote(noteFor(platform));
+    } finally {
+      setActivePlatform(null);
+    }
+  }, [shareData, caption]);
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 animate-fade-in-up">
@@ -574,12 +694,12 @@ export default function SundayView() {
             <span>{generating ? 'Creating…' : 'Download Share Image'}</span>
           </button>
           <button
-            onClick={handleShare}
+            onClick={openShareModal}
             disabled={!canShare}
             className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-600 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Share2 className="w-3.5 h-3.5" />
-            <span>Share</span>
+            <span>Share to...</span>
           </button>
           <button
             onClick={handleCopy}
@@ -591,6 +711,87 @@ export default function SundayView() {
           </button>
         </div>
       </div>
+
+      {/* SHARE MODAL */}
+      {shareOpen && (
+        <div
+          className="fixed inset-0 z-[90] bg-black/30 backdrop-blur-sm flex items-end sm:items-center justify-center"
+          onClick={() => setShareOpen(false)}
+        >
+          <div
+            className="w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="font-serif text-lg font-bold text-gray-900">Share to...</h3>
+              <button onClick={() => setShareOpen(false)} className="p-1.5 rounded-full hover:bg-gray-100 text-gray-400">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 block">
+                Caption
+              </label>
+              <textarea
+                value={caption}
+                onChange={e => setCaption(e.target.value.slice(0, 260))}
+                rows={2}
+                className="w-full text-sm rounded-xl border border-gray-200 px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-300 transition-all resize-none"
+              />
+              <div className="text-right text-[10px] text-gray-300 mt-1">{caption.length}/260</div>
+            </div>
+
+            {canNativeShareFiles && (
+              <button
+                onClick={handleNativeShare}
+                disabled={nativeSharing}
+                className="w-full flex items-center justify-center gap-2 text-sm font-bold px-4 py-3 rounded-2xl bg-gray-900 text-white hover:bg-gray-800 transition-all active:scale-[0.98] disabled:opacity-50"
+              >
+                <Smartphone className="w-4 h-4" />
+                {nativeSharing ? 'Opening share sheet…' : 'Share from this device'}
+              </button>
+            )}
+
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                {canNativeShareFiles ? 'Or share directly to' : 'Share directly to'}
+              </p>
+              <div className="grid grid-cols-3 gap-3">
+                {PLATFORMS.map(p => (
+                  <button
+                    key={p.id}
+                    onClick={() => handlePlatformClick(p.id)}
+                    disabled={activePlatform !== null}
+                    className="flex flex-col items-center gap-1.5 disabled:opacity-50 active:scale-95 transition-all"
+                  >
+                    <span
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-sm"
+                      style={{ background: p.bg }}
+                    >
+                      {activePlatform === p.id ? (
+                        <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                      ) : p.icon}
+                    </span>
+                    <span className="text-[10px] font-semibold text-gray-600">{p.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {shareNote && (
+              <div className="text-xs leading-relaxed text-amber-800 bg-amber-50 border border-amber-100 rounded-xl p-3">
+                {shareNote}
+              </div>
+            )}
+
+            <p className="text-[10px] text-gray-300 leading-relaxed text-center pt-1">
+              Platforms don't let websites auto-attach images or captions to a post — each button
+              downloads your card and opens the platform so you can attach it in one more tap.
+            </p>
+          </div>
+        </div>
+      )}
 
       <style>{`
         .coin-3d {
