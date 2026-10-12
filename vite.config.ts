@@ -14,6 +14,8 @@ VitePWA({
     navigateFallback: '/index.html',
   },
 })
+
+ <reference types="vite-plugin-pwa/client" />
 // ] })
 export default defineConfig(() => {
   return {
