@@ -1,7 +1,7 @@
 import React from 'react';
 // Adjust this import path if your constants file lives somewhere else —
 // this assumes src/constants.ts and src/components/WidgetVerseCard.tsx.
-import { getDailyBibleVerse } from '../constants';
+import { getDailyBibleVerse } from '../data';
 
 /**
  * A minimal, self-contained "verse of the day" card meant to be embedded on
