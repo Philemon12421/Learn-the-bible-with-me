@@ -1,27 +1,44 @@
 {
-  "name": "Learn With Me",
-  "short_name": "LearnWithMe",
-  "description": "Daily Bible verses, motivational quotes, and timeless wisdom for your faith journey.",
-  "start_url": "/",
+  "name": "Learn With Me — Daily Bible, Motivation & Wisdom",
+  "short_name": "Learn With Me",
+  "description": "Daily Bible verses, motivational quotes, and timeless wisdom — carefully curated to inspire your faith journey.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "id": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "background_color": "#f8f7f4",
   "theme_color": "#b45309",
   "orientation": "portrait-primary",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["lifestyle", "education", "books"],
   "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
     {
-      "src": "/cross.jpeg",
-      "sizes": "192x192",
-      "type": "image/jpeg",
-      "purpose": "any maskable"
+      "name": "Today's Verse",
+      "short_name": "Verse",
+      "description": "Jump straight to today's Bible verse",
+      "url": "/?view=bible&source=shortcut",
+      "icons": [{ "src": "/icons/shortcut-bible.png", "sizes": "96x96", "type": "image/png" }]
     },
     {
-      "src": "/cross.jpeg",
-      "sizes": "512x512",
-      "type": "image/jpeg",
-      "purpose": "any"
+      "name": "What I Learned This Sunday",
+      "short_name": "Sunday",
+      "description": "Write and share this week's reflection",
+      "url": "/?view=sunday&source=shortcut",
+      "icons": [{ "src": "/icons/shortcut-sunday.png", "sizes": "96x96", "type": "image/png" }]
+    },
+    {
+      "name": "Daily Motivation",
+      "short_name": "Motivation",
+      "url": "/?view=motivation&source=shortcut",
+      "icons": [{ "src": "/icons/shortcut-motivation.png", "sizes": "96x96", "type": "image/png" }]
     }
-  ],
-  "categories": ["lifestyle", "education", "books"],
-  "lang": "en-US",
-  "dir": "ltr"
+  ]
 }
