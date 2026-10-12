@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Home, BookOpen, Sparkles, Compass, Church, HelpCircle, Mail, Shield, Scale, 
   Menu, X, Heart, Facebook
@@ -18,9 +18,31 @@ import BlogView from './components/BlogView';
 import AudioPlayer from './components/AudioPlayer';
 import SundayView from './components/SundayView';
 import SplashScreen from './components/SplashScreen';
+import InstallPrompt from './components/InstallPrompt';
+import PWAUpdateToast from './components/PWAUpdateToast';
+import WidgetVerseCard from './components/WidgetVerseCard';
+import { checkAndFireDailyReminder } from './components/DailyReminder';
+import { getDailyBibleVerse } from './constants';
+
+const VALID_VIEWS: ViewType[] = ['home', 'bible', 'motivation', 'wisdom', 'about', 'contact', 'privacy', 'terms', 'blog', 'sunday'];
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<ViewType>('home');
+  // ?widget=1 → render the standalone embeddable verse card only, with no
+  // header/nav/footer/splash. Checked once; this URL is meant to be loaded
+  // fresh inside an <iframe>, not navigated within the app.
+  const isWidgetMode = useMemo(
+    () => new URLSearchParams(window.location.search).get('widget') === '1',
+    []
+  );
+
+  // ?view=bible (etc.) → used by the PWA manifest's app shortcuts so a
+  // long-press on the installed icon can jump straight to a page.
+  const initialView = useMemo<ViewType>(() => {
+    const requested = new URLSearchParams(window.location.search).get('view');
+    return (VALID_VIEWS as string[]).includes(requested || '') ? (requested as ViewType) : 'home';
+  }, []);
+
+  const [currentView, setCurrentView] = useState<ViewType>(initialView);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [todayDate] = useState<Date>(new Date());
   const [scrolled, setScrolled] = useState(false);
@@ -31,9 +53,10 @@ export default function App() {
   const [splashMounted, setSplashMounted] = useState(true);
 
   useEffect(() => {
+    if (isWidgetMode) return; // no splash in embedded widget mode
     const t = setTimeout(() => setSplashVisible(false), 1500);
     return () => clearTimeout(t);
-  }, []);
+  }, [isWidgetMode]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -45,6 +68,15 @@ export default function App() {
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Daily reminder: checked once on load. See components/DailyReminder.tsx
+  // for the honest limitation — this fires when the app is opened on/after
+  // the chosen time, not as a true background push while fully closed.
+  useEffect(() => {
+    if (isWidgetMode) return;
+    const verse = getDailyBibleVerse(new Date());
+    checkAndFireDailyReminder(verse.reference, verse.text);
+  }, [isWidgetMode]);
 
   const renderActiveView = () => {
     switch (currentView) {
@@ -62,12 +94,22 @@ export default function App() {
     }
   };
 
+  // Embeddable widget: a completely separate, minimal render path — no
+  // shell, no splash, no nav. Hooks above still ran unconditionally, so
+  // this early return is safe.
+  if (isWidgetMode) {
+    return <WidgetVerseCard />;
+  }
+
   return (
     <div className="min-h-screen bg-[#f8f7f4] flex flex-col font-sans pb-20 md:pb-0">
 
       {splashMounted && (
         <SplashScreen visible={splashVisible} onHidden={() => setSplashMounted(false)} />
       )}
+
+      <InstallPrompt />
+      <PWAUpdateToast />
 
       {/* HEADER */}
       <header className={`sticky top-0 z-40 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-xl shadow-sm border-b border-amber-100/50' : 'bg-white/70 backdrop-blur-md border-b border-gray-100/40'}`}>
