@@ -1,8 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Home, BookOpen, Sparkles, Compass, Church, HelpCircle, Mail, Shield, Scale, 
-  Menu, X, Heart, Facebook
-} from 'lucide-react';
+import { Heart, Facebook } from 'lucide-react';
 import { ViewType } from './types';
 import { 
   HomeView, 
@@ -21,8 +18,9 @@ import SplashScreen from './components/SplashScreen';
 import InstallPrompt from './components/InstallPrompt';
 import PWAUpdateToast from './components/PWAUpdateToast';
 import WidgetVerseCard from './components/WidgetVerseCard';
+import MobileNavBar from './components/MobileNavBar';
 import { checkAndFireDailyReminder } from './components/DailyReminder';
-import { getDailyBibleVerse } from './data';
+import { getDailyBibleVerse } from './constants';
 
 const VALID_VIEWS: ViewType[] = ['home', 'bible', 'motivation', 'wisdom', 'about', 'contact', 'privacy', 'terms', 'blog', 'sunday'];
 
@@ -43,7 +41,6 @@ export default function App() {
   }, []);
 
   const [currentView, setCurrentView] = useState<ViewType>(initialView);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [todayDate] = useState<Date>(new Date());
   const [scrolled, setScrolled] = useState(false);
 
@@ -60,7 +57,6 @@ export default function App() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    setIsMobileMenuOpen(false);
   }, [currentView]);
 
   useEffect(() => {
@@ -248,59 +244,8 @@ export default function App() {
         </div>
       </footer>
 
-      {/* MOBILE BOTTOM NAV */}
-      <nav aria-label="Mobile navigation" className="md:hidden fixed bottom-3 inset-x-3 h-16 bg-white/85 backdrop-blur-xl rounded-2xl border border-gray-200/50 shadow-xl flex items-center justify-around px-1.5 z-40">
-        {[
-          { view: 'home', icon: <Home className="w-4 h-4" />, label: 'Home' },
-          { view: 'bible', icon: <BookOpen className="w-4 h-4" />, label: 'Bible' },
-          { view: 'sunday', icon: <Church className="w-4 h-4" />, label: 'Sunday' },
-          { view: 'motivation', icon: <Sparkles className="w-4 h-4" />, label: 'Growth' },
-          { view: 'wisdom', icon: <Compass className="w-4 h-4" />, label: 'Wisdom' },
-        ].map(({ view, icon, label }) => (
-          <button key={view} onClick={() => setCurrentView(view as ViewType)}
-            className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all ${currentView === view ? 'text-amber-700 bg-amber-50 scale-105' : 'text-gray-400 hover:text-gray-700'}`}>
-            {icon}
-            <span className="text-[8.5px] font-bold mt-0.5">{label}</span>
-          </button>
-        ))}
-        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all ${isMobileMenuOpen ? 'text-amber-700 bg-amber-50 scale-105' : 'text-gray-400'}`}>
-          {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-          <span className="text-[8.5px] font-bold mt-0.5">More</span>
-        </button>
-      </nav>
-
-      {/* MOBILE MORE DRAWER */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-35 flex items-end" onClick={() => setIsMobileMenuOpen(false)}>
-          <div className="w-full bg-white rounded-t-3xl border-t border-gray-100 p-5 space-y-4 shadow-2xl pb-28" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between pb-3 border-b border-gray-50">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">More Pages</span>
-              <button onClick={() => setIsMobileMenuOpen(false)} className="p-1.5 rounded-full hover:bg-gray-100 text-gray-400">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-2.5">
-              {[
-                { view: 'blog', icon: <BookOpen className="w-4 h-4" />, title: 'Blog', desc: 'Longer reads & guides' },
-                { view: 'about', icon: <HelpCircle className="w-4 h-4" />, title: 'About Us', desc: 'Our vision & mission' },
-                { view: 'contact', icon: <Mail className="w-4 h-4" />, title: 'Contact', desc: 'Send a message' },
-                { view: 'privacy', icon: <Shield className="w-4 h-4" />, title: 'Privacy', desc: 'How we protect you' },
-                { view: 'terms', icon: <Scale className="w-4 h-4" />, title: 'Terms', desc: 'Service guidelines' },
-              ].map(({ view, icon, title, desc }) => (
-                <button key={view} onClick={() => setCurrentView(view as ViewType)}
-                  className={`p-4 rounded-2xl border text-left transition-all flex items-start gap-2.5 ${currentView === view ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-white border-gray-100 hover:bg-gray-50 text-gray-800'}`}>
-                  <span className="mt-0.5 text-gray-400">{icon}</span>
-                  <div>
-                    <h4 className="text-xs font-bold">{title}</h4>
-                    <p className="text-[9px] text-gray-400 mt-0.5">{desc}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* MOBILE: glassy 4-tab bar + floating "+" panel for the rest */}
+      <MobileNavBar currentView={currentView} setCurrentView={setCurrentView} />
 
       <style>{`
         @keyframes fadeInUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
