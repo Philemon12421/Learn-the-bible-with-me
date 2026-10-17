@@ -20,7 +20,7 @@ import PWAUpdateToast from './components/PWAUpdateToast';
 import WidgetVerseCard from './components/WidgetVerseCard';
 import MobileNavBar from './components/MobileNavBar';
 import { checkAndFireDailyReminder } from './components/DailyReminder';
-import { getDailyBibleVerse } from './constants';
+import { getDailyBibleVerse } from './data';
 
 const VALID_VIEWS: ViewType[] = ['home', 'bible', 'motivation', 'wisdom', 'about', 'contact', 'privacy', 'terms', 'blog', 'sunday'];
 
