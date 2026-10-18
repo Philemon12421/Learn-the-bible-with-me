@@ -98,14 +98,31 @@ function roundRect(
   ctx.closePath();
 }
 
-/** Soft, visible off-white paper grain — matches a textured card background. */
-function drawPaperTexture(ctx: CanvasRenderingContext2D, width: number, height: number) {
+/** Warm cream paper grain — matches an aged-paper card background, not stark white. */
+function drawPaperTexture(ctx: CanvasRenderingContext2D, size: number) {
   ctx.save();
-  const grad = ctx.createLinearGradient(0, 0, width, height);
-  grad.addColorStop(0, '#ffffff');
-  grad.addColorStop(1, '#f8f9fa');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, width, height);
+  ctx.fillStyle = '#fbf4e2';
+  ctx.fillRect(0, 0, size, size);
+
+  let seed = 42;
+  const rand = () => {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  };
+  for (let i = 0; i < 140; i++) {
+    const x = rand() * size;
+    const y = rand() * size;
+    const r = 30 + rand() * 130;
+    const dark = rand() > 0.5;
+    ctx.globalAlpha = dark ? 0.035 : 0.05;
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+    grad.addColorStop(0, dark ? '#c9a86a' : '#fffdf5');
+    grad.addColorStop(1, 'rgba(201,168,106,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
   ctx.restore();
 }
 
@@ -166,8 +183,8 @@ function wrapEmphasizedQuote(
   fontSize: number,
   highlightHex: string
 ): number {
-  const normalFont = `700 ${fontSize}px Georgia, "Times New Roman", serif`;
-  const emphasisFont = `900 italic ${fontSize}px Georgia, "Times New Roman", serif`;
+  const normalFont = `400 ${fontSize}px Georgia, "Times New Roman", serif`;
+  const emphasisFont = `700 italic ${fontSize}px Georgia, "Times New Roman", serif`;
 
   const words: { text: string; emphasize: boolean }[] = [
     ...primary.split(' ').filter(Boolean).map(w => ({ text: w, emphasize: false })),
@@ -237,64 +254,49 @@ function wrapEmphasizedQuote(
 
 // ─── Main download function ────────────────────────────────────────────────────
 
-const KICKER_LABEL: Record<QuoteCardProps['type'], string> = {
-  bible: 'Inspire Through Bible',
-  motivation: 'Daily Motivation',
-  wisdom: 'Words of Wisdom',
-};
-
 /**
- * Renders a 1080×1080 share-ready PNG of the quote — clean textured background,
- * quote-mark kicker, big serif reference, plain text with a highlighted "punchline"
- * clause, a real explanation paragraph, and a footer link — then triggers a download.
+ * Renders a 1080×1080 share-ready PNG of the quote — warm cream paper background,
+ * a plain quote-mark glyph, big serif reference, plain text with a highlighted
+ * "punchline" clause, and a real explanation paragraph — then triggers a download.
+ * No label tag and no footer caption — just the content itself.
  */
 async function downloadQuoteAsImage(props: QuoteCardProps): Promise<void> {
-  const SCALE = 2; // For ultra-high quality
-  const WIDTH = 1080;
-  const HEIGHT = 1350;
-  const PADDING = 100;
+  const SIZE = 1080;
+  const PADDING = 88;
   const c = COLOR_MAP[props.accentColor];
-  const maxWidth = WIDTH - PADDING * 2;
+  const maxWidth = SIZE - PADDING * 2;
 
   const canvas = document.createElement('canvas');
-  canvas.width = WIDTH * SCALE;
-  canvas.height = HEIGHT * SCALE;
+  canvas.width = SIZE;
+  canvas.height = SIZE;
   const ctx = canvas.getContext('2d')!;
-  ctx.scale(SCALE, SCALE);
 
-  // High quality smoothing
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
+  // ── 1. Background: warm cream paper texture ──────────────────────────────────
+  drawPaperTexture(ctx, SIZE);
 
-  // ── 1. Background: soft paper texture ────────────────────────────────────────
-  drawPaperTexture(ctx, WIDTH, HEIGHT);
-
-  // ── 2. Kicker: quote-mark glyph + label (top-left) ───────────────────────────
+  // ── 2. Quote-mark glyph (top-left) — no label tag beside it ──────────────────
   let cursorY = PADDING + 46;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = c.hex;
-  ctx.font = '700 96px Georgia, "Times New Roman", serif';
+  ctx.font = '700 74px Georgia, "Times New Roman", serif';
   ctx.fillText('\u201C', PADDING - 6, cursorY + 10);
-  ctx.fillStyle = '#6b6b68';
-  ctx.font = '700 36px system-ui, -apple-system, sans-serif';
-  ctx.fillText(KICKER_LABEL[props.type], PADDING + 58, cursorY - 6);
 
   // ── 3. Big serif reference / author line ─────────────────────────────────────
   cursorY += 96;
   ctx.fillStyle = '#111111';
-  ctx.font = '900 84px Georgia, "Times New Roman", serif';
+  ctx.font = '700 62px Georgia, "Times New Roman", serif';
   ctx.fillText(props.highlightValue.toUpperCase(), PADDING, cursorY);
 
   // ── 4. Quote — plain serif with the punchline clause highlighted ────────────
-  cursorY += 100;
+  cursorY += 66;
   const { primary, secondary } = splitForEmphasis(props.quoteText);
-  cursorY = wrapEmphasizedQuote(ctx, primary, secondary, PADDING, cursorY, maxWidth, 90, 68, "#FFE600");
+  cursorY = wrapEmphasizedQuote(ctx, primary, secondary, PADDING, cursorY, maxWidth, 58, 40, c.hexLight);
 
   // ── 5. Author line for non-scripture quotes ──────────────────────────────────
   if (props.type !== 'bible') {
     cursorY += 6;
-    ctx.font = 'italic 700 48px Georgia, "Times New Roman", serif';
+    ctx.font = 'italic 400 30px Georgia, "Times New Roman", serif';
     ctx.fillStyle = '#666666';
     ctx.fillText(`— ${props.highlightValue}`, PADDING, cursorY);
     cursorY += 20;
@@ -302,23 +304,17 @@ async function downloadQuoteAsImage(props: QuoteCardProps): Promise<void> {
 
   // ── 6. Explanation section ───────────────────────────────────────────────────
   cursorY += 46;
-  ctx.font = '800 32px system-ui, -apple-system, sans-serif';
+  ctx.font = '700 22px system-ui, -apple-system, sans-serif';
   ctx.fillStyle = c.hexDark;
   ctx.fillText('WHAT THIS MEANS', PADDING, cursorY);
 
   cursorY += 40;
-  ctx.font = '500 38px system-ui, -apple-system, sans-serif';
+  ctx.font = '400 27px system-ui, -apple-system, sans-serif';
   ctx.fillStyle = '#4a4a47';
-  cursorY = wrapText(ctx, truncate(props.bodyExplanation, 260), PADDING, cursorY, maxWidth, 54);
+  wrapText(ctx, truncate(props.bodyExplanation, 260), PADDING, cursorY, maxWidth, 38);
 
-  // ── 7. Footer link ────────────────────────────────────────────────────────────
-  ctx.fillStyle = '#9a9a95';
-  ctx.font = '700 28px system-ui, -apple-system, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('Follow us here learnthebible.vercel.app | #Motivation #Inspiration #DailyQuote #Viral #LifeLessons', WIDTH / 2, HEIGHT - 60);
-
-  // ── 8. Trigger download ───────────────────────────────────────────────────────
-  const filename = `best-inspirational-viral-quote-${props.highlightValue.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.png`;
+  // ── 7. Trigger download ───────────────────────────────────────────────────────
+  const filename = `quote-${props.highlightValue.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.png`;
   const link = document.createElement('a');
   link.download = filename;
   link.href = canvas.toDataURL('image/png');
