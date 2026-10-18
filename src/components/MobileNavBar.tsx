@@ -76,35 +76,27 @@ export default function MobileNavBar({ currentView, setCurrentView }: MobileNavB
 
   return (
     <>
-      {/* GLASSY 4-TAB BAR */}
+      {/* GLASSY 4-TAB BAR — plain even row, no notch; the FAB floats independently */}
       <nav
         aria-label="Mobile navigation"
         className="md:hidden fixed bottom-3 inset-x-3 h-16 z-40 glass-bar rounded-[28px]"
       >
-        <div className="relative h-full flex items-stretch px-1">
-          <div className="flex-1 grid grid-cols-2">
-            {PRIMARY.slice(0, 2).map(renderTab)}
-          </div>
-          <div className="w-16 flex-shrink-0" aria-hidden="true" />
-          <div className="flex-1 grid grid-cols-2">
-            {PRIMARY.slice(2, 4).map(renderTab)}
-          </div>
+        <div className="relative h-full grid grid-cols-4 px-1">
+          {PRIMARY.map(renderTab)}
         </div>
       </nav>
 
-      {/* FLOATING 3D GLASS FAB */}
-      <div className="md:hidden fixed bottom-11 inset-x-0 z-50 flex justify-center pointer-events-none">
-        <button
-          onClick={() => (panelVisible ? closePanel() : openPanel())}
-          aria-label={panelVisible ? 'Close menu' : 'More pages'}
-          aria-expanded={panelVisible}
-          className={`pointer-events-auto fab-glass ${isSecondaryActive ? 'fab-glass--active' : ''}`}
-        >
-          <Plus className={`w-6 h-6 text-white transition-transform duration-300 ${panelVisible ? 'rotate-45' : ''}`} strokeWidth={2.5} />
-        </button>
-      </div>
+      {/* FLOATING 3D GLASS FAB — detached from the bar, bottom-right corner */}
+      <button
+        onClick={() => (panelVisible ? closePanel() : openPanel())}
+        aria-label={panelVisible ? 'Close menu' : 'More pages'}
+        aria-expanded={panelVisible}
+        className={`md:hidden fixed bottom-24 right-4 z-50 fab-glass ${isSecondaryActive ? 'fab-glass--active' : ''}`}
+      >
+        <Plus className={`w-6 h-6 text-white transition-transform duration-300 ${panelVisible ? 'rotate-45' : ''}`} strokeWidth={2.5} />
+      </button>
 
-      {/* BACKDROP + EXPANDING GLASS PANEL */}
+      {/* BACKDROP + EXPANDING GLASS PANEL — pops from the FAB's corner */}
       {panelMounted && (
         <>
           <div
@@ -115,7 +107,7 @@ export default function MobileNavBar({ currentView, setCurrentView }: MobileNavB
             onTransitionEnd={(e) => {
               if (e.propertyName === 'transform' && !panelVisible) setPanelMounted(false);
             }}
-            className={`md:hidden fixed bottom-24 inset-x-5 z-50 glass-panel ${panelVisible ? 'glass-panel--open' : ''}`}
+            className={`md:hidden fixed bottom-[172px] right-4 left-4 z-50 glass-panel glass-panel--from-corner ${panelVisible ? 'glass-panel--open' : ''}`}
           >
             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3 px-1">
               More Pages
@@ -201,10 +193,13 @@ export default function MobileNavBar({ currentView, setCurrentView }: MobileNavB
           box-shadow:
             0 20px 50px rgba(17,17,17,0.18),
             inset 0 1px 0 rgba(255,255,255,0.8);
-          transform-origin: bottom center;
           transform: scale(0.35) translateY(16px);
           opacity: 0;
           transition: transform 0.38s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease;
+        }
+        .glass-panel--from-corner {
+          /* pops open anchored from the FAB's corner, not the panel's center */
+          transform-origin: bottom right;
         }
         .glass-panel--open {
           transform: scale(1) translateY(0);
