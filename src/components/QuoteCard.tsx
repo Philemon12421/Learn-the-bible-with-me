@@ -289,9 +289,11 @@ async function downloadQuoteAsImage(props: QuoteCardProps): Promise<void> {
   ctx.fillText(props.highlightValue.toUpperCase(), PADDING, cursorY);
 
   // ── 4. Quote — plain serif with the punchline clause highlighted ────────────
+  // Deep yellow highlighter, not a pastel theme tint — reads the same for
+  // every accent color instead of changing with bible/motivation/wisdom.
   cursorY += 66;
   const { primary, secondary } = splitForEmphasis(props.quoteText);
-  cursorY = wrapEmphasizedQuote(ctx, primary, secondary, PADDING, cursorY, maxWidth, 58, 40, c.hexLight);
+  cursorY = wrapEmphasizedQuote(ctx, primary, secondary, PADDING, cursorY, maxWidth, 58, 40, '#F7C600');
 
   // ── 5. Author line for non-scripture quotes ──────────────────────────────────
   if (props.type !== 'bible') {
