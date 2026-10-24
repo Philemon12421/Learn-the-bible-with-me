@@ -98,7 +98,43 @@ function roundRect(
   ctx.closePath();
 }
 
-/** Warm cream paper grain — matches an aged-paper card background, not stark white. */
+/**
+ * Attempts to load a background photo from /bible-background.jpg (drop your
+ * own photo of an open Bible into the public/ folder with this filename).
+ * Resolves to null if it's missing or fails to load, so the caller can fall
+ * back to the plain paper texture instead of breaking.
+ */
+function loadBackgroundPhoto(): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = '/bible-background.jpg';
+  });
+}
+
+/**
+ * Draws the given photo heavily blurred and cover-fit across the canvas,
+ * then lays a translucent cream tint over it so dark text and the yellow
+ * highlight both stay legible regardless of how light or dark the photo is.
+ */
+function drawBlurredPhotoBackground(ctx: CanvasRenderingContext2D, img: HTMLImageElement, size: number) {
+  ctx.save();
+  ctx.filter = 'blur(22px)';
+  // Slightly over-scale so the blur doesn't reveal transparent edges.
+  const scale = Math.max(size / img.width, size / img.height) * 1.08;
+  const drawW = img.width * scale;
+  const drawH = img.height * scale;
+  ctx.drawImage(img, (size - drawW) / 2, (size - drawH) / 2, drawW, drawH);
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(251,244,226,0.74)';
+  ctx.fillRect(0, 0, size, size);
+  ctx.restore();
+}
+
+/** Warm cream paper grain — used as the background when no photo is available. */
 function drawPaperTexture(ctx: CanvasRenderingContext2D, size: number) {
   ctx.save();
   ctx.fillStyle = '#fbf4e2';
@@ -271,8 +307,13 @@ async function downloadQuoteAsImage(props: QuoteCardProps): Promise<void> {
   canvas.height = SIZE;
   const ctx = canvas.getContext('2d')!;
 
-  // ── 1. Background: warm cream paper texture ──────────────────────────────────
-  drawPaperTexture(ctx, SIZE);
+  // ── 1. Background: blurred Bible photo, falling back to plain paper texture ──
+  const bgPhoto = await loadBackgroundPhoto();
+  if (bgPhoto) {
+    drawBlurredPhotoBackground(ctx, bgPhoto, SIZE);
+  } else {
+    drawPaperTexture(ctx, SIZE);
+  }
 
   // ── 2. Quote-mark glyph (top-left) — no label tag beside it ──────────────────
   let cursorY = PADDING + 46;
