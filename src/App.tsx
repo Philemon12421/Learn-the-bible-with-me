@@ -5,7 +5,7 @@ import {
   HomeView, 
   BibleView, 
   MotivationView, 
-  WisdomView, 
+  WisdomView,  
   AboutView, 
   ContactView, 
   PrivacyView, 
