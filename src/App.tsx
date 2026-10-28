@@ -19,10 +19,14 @@ import InstallPrompt from './components/InstallPrompt';
 import PWAUpdateToast from './components/PWAUpdateToast';
 import WidgetVerseCard from './components/WidgetVerseCard';
 import MobileNavBar from './components/MobileNavBar';
+import PrayerRequestView from './components/PrayerRequestView';
+import BibleReaderView from './components/BibleReaderView';
 import { checkAndFireDailyReminder } from './components/DailyReminder';
 import { getDailyBibleVerse } from './data';
 
-const VALID_VIEWS: ViewType[] = ['home', 'bible', 'motivation', 'wisdom', 'about', 'contact', 'privacy', 'terms', 'blog', 'sunday'];
+const VALID_VIEWS: ViewType[] = ['home', 'bible', 'motivation', 'wisdom', 'about', 'contact', 'privacy', 'terms', 'blog', 'sunday', 'prayer', 'reader'];
+
+const NAV_LABEL: Partial<Record<ViewType, string>> = { bible: 'Scripture', reader: 'Read Bible', prayer: 'Prayer' };
 
 export default function App() {
   // ?widget=1 → render the standalone embeddable verse card only, with no
@@ -86,6 +90,8 @@ export default function App() {
       case 'terms': return <TermsView />;
       case 'blog': return <BlogView />;
       case 'sunday': return <SundayView />;
+      case 'prayer': return <PrayerRequestView />;
+      case 'reader': return <BibleReaderView />;
       default: return <HomeView onNavigate={setCurrentView} todayDate={todayDate} />;
     }
   };
@@ -143,13 +149,13 @@ export default function App() {
 
           {/* DESKTOP NAV */}
           <nav className="hidden md:flex items-center gap-0.5" aria-label="Main navigation">
-            {(['home','bible','motivation','wisdom','sunday','about','contact'] as ViewType[]).map(v => (
+            {(['home','bible','reader','motivation','wisdom','sunday','prayer','about'] as ViewType[]).map(v => (
               <button
                 key={v}
                 onClick={() => setCurrentView(v)}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all capitalize ${currentView === v ? 'bg-amber-50 text-amber-800 font-bold' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
               >
-                {v === 'bible' ? 'Scripture' : v}
+                {NAV_LABEL[v] ?? v}
               </button>
             ))}
           </nav>
@@ -201,8 +207,8 @@ export default function App() {
               <h4 className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">Pages</h4>
               <div className="grid grid-cols-2 gap-1.5 text-xs text-gray-600">
                 {[
-                  ['home','Home'],['bible','Scripture'],['motivation','Motivation'],
-                  ['wisdom','Wisdom'],['sunday','Sunday'],['blog','Blog'],
+                  ['home','Home'],['bible','Scripture'],['reader','Read Bible'],['motivation','Motivation'],
+                  ['wisdom','Wisdom'],['sunday','Sunday'],['prayer','Prayer'],['blog','Blog'],
                   ['about','About'],['contact','Contact'],
                   ['privacy','Privacy'],['terms','Terms']
                 ].map(([view, label]) => (
