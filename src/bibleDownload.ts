@@ -79,6 +79,8 @@ export async function downloadTranslation(
         if (consecutiveFailures >= 10) {
           throw new Error('Too many failed requests in a row — check your connection and try again.');
         }
+        // Add a delay before retrying to prevent rapid failures
+        await new Promise(r => setTimeout(r, 1000));
         // Put it back at the end of the queue to retry once more later.
         jobs.push(job);
       }
