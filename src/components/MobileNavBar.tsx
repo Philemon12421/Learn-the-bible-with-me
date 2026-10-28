@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   Home, BookOpen, Church, Compass, Sparkles, Newspaper,
-  HelpCircle, Mail, Shield, Scale, Plus,
+  HelpCircle, Mail, Shield, Scale, Plus, Library, HandHeart,
 } from 'lucide-react';
 import { ViewType } from '../types';
 
@@ -22,6 +22,8 @@ const PRIMARY: NavItem[] = [
 
 const SECONDARY: NavItem[] = [
   { view: 'motivation', icon: <Sparkles className="w-5 h-5" />, label: 'Growth' },
+  { view: 'reader', icon: <Library className="w-5 h-5" />, label: 'Read Bible' },
+  { view: 'prayer', icon: <HandHeart className="w-5 h-5" />, label: 'Prayer' },
   { view: 'blog', icon: <Newspaper className="w-5 h-5" />, label: 'Blog' },
   { view: 'about', icon: <HelpCircle className="w-5 h-5" />, label: 'About' },
   { view: 'contact', icon: <Mail className="w-5 h-5" />, label: 'Contact' },
