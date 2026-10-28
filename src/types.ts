@@ -20,4 +20,4 @@ export interface WiseSaying {
   explanation: string;
 }
 
-export type ViewType = 'home' | 'bible' | 'motivation' | 'wisdom' | 'about' | 'contact' | 'privacy' | 'terms' | 'blog'| 'sunday';
+export type ViewType = 'home' | 'bible' | 'motivation' | 'wisdom' | 'about' | 'contact' | 'privacy' | 'terms' | 'blog'| 'sunday' | 'prayer' | 'reader';
