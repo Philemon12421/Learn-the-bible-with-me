@@ -145,7 +145,9 @@ export default function BibleReaderView() {
               <div className="h-full bg-amber-500 transition-all duration-300" style={{ width: `${progress?.percent ?? 0}%` }} />
             </div>
             <p className="text-xs text-gray-400 mt-2">
-              {progress?.done ?? 0} / {progress?.total ?? TOTAL_CHAPTERS} chapters · {progress?.percent ?? 0}%
+              {progress?.stage === 'fetching'
+                ? 'Downloading…'
+                : `${progress?.done ?? 0} / ${progress?.total ?? TOTAL_CHAPTERS} chapters saved · ${progress?.percent ?? 0}%`}
             </p>
           </div>
         ) : (
