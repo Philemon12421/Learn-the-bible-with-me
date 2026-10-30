@@ -1,92 +1,84 @@
-import { BIBLE_BOOKS } from './bibleBooks';
-import { saveChapter, getChapter, type TranslationCode, type BibleVerseEntry } from './bibleStorage';
+import { BIBLE_BOOKS, TOTAL_CHAPTERS } from './bibleBooks';
+import { saveChapter, type TranslationCode, type BibleVerseEntry } from './bibleStorage';
 
-const CONCURRENCY = 6;
+// One complete file per translation — maintained, public-domain Bible text,
+// served through jsDelivr's CDN (proper CORS, globally cached, no meaningful
+// rate limit for a single file fetch like this).
+//
+// IMPORTANT — do not swap this back for bible-api.com's per-chapter endpoint:
+// that service is explicitly rate-limited to 15 requests/30s and its own
+// terms of use say "do not use this API to download an entire bible." This
+// file fetches the whole translation in ONE request instead.
+const SOURCE_URL: Record<TranslationCode, string> = {
+  kjv: 'https://cdn.jsdelivr.net/gh/thiagobodruk/bible@master/json/en_kjv.json',
+  web: 'https://cdn.jsdelivr.net/gh/thiagobodruk/bible@master/json/en_web.json',
+};
 
-interface ChapterJob {
-  bookId: string;
-  chapter: number;
-}
-
-function buildJobList(): ChapterJob[] {
-  const jobs: ChapterJob[] = [];
-  for (const book of BIBLE_BOOKS) {
-    for (let c = 1; c <= book.chapters; c++) jobs.push({ bookId: book.id, chapter: c });
-  }
-  return jobs;
-}
-
-interface BibleApiChapterResponse {
-  verses: Array<{ verse: number; text: string }>;
-}
-
-async function fetchChapter(translation: TranslationCode, bookId: string, chapter: number, signal?: AbortSignal): Promise<BibleVerseEntry[]> {
-  const res = await fetch(`https://bible-api.com/data/${translation}/${bookId}/${chapter}`, { signal });
-  if (!res.ok) throw new Error(`Failed to fetch ${bookId} ${chapter}: ${res.status}`);
-  const data: BibleApiChapterResponse = await res.json();
-  return data.verses.map(v => ({ verse: v.verse, text: v.text.trim() }));
+interface SourceBook {
+  book: string;
+  chapters: string[][]; // chapters[chapterIndex][verseIndex] = verse text
 }
 
 export interface DownloadProgress {
+  stage: 'fetching' | 'saving';
   done: number;
   total: number;
   percent: number;
 }
 
 /**
- * Downloads every chapter of a translation, skipping any already stored
- * (so a resumed/retried download doesn't re-fetch what's already there).
- * Reports progress after each chapter. Throws if aborted via `signal`, or
- * after a handful of consecutive failures (likely a network outage) rather
- * than silently giving up partway with no explanation.
+ * Downloads a full translation (one network request), then writes every
+ * chapter into IndexedDB. Progress is reported per-chapter during the save
+ * phase but throttled so it doesn't trigger a React re-render 1,189 times.
  */
 export async function downloadTranslation(
   translation: TranslationCode,
   onProgress: (p: DownloadProgress) => void,
   signal?: AbortSignal
 ): Promise<void> {
-  const allJobs = buildJobList();
-  const total = allJobs.length;
+  onProgress({ stage: 'fetching', done: 0, total: 1, percent: 0 });
 
-  // Skip chapters already downloaded (resuming a previously interrupted download).
-  const jobs: ChapterJob[] = [];
-  for (const job of allJobs) {
-    const existing = await getChapter(translation, job.bookId, job.chapter);
-    if (!existing) jobs.push(job);
+  const res = await fetch(SOURCE_URL[translation], { signal });
+  if (!res.ok) {
+    throw new Error(`Couldn't download ${translation.toUpperCase()} (server responded ${res.status}). Check your connection and try again.`);
   }
 
-  let done = total - jobs.length;
-  onProgress({ done, total, percent: Math.round((done / total) * 100) });
+  const data: SourceBook[] = await res.json();
+  if (!Array.isArray(data) || data.length !== BIBLE_BOOKS.length) {
+    throw new Error('The downloaded Bible data looked different than expected — please try again, or report this if it keeps happening.');
+  }
 
-  let consecutiveFailures = 0;
-  let cursor = 0;
+  onProgress({ stage: 'saving', done: 0, total: TOTAL_CHAPTERS, percent: 0 });
 
-  async function worker() {
-    while (cursor < jobs.length) {
-      if (signal?.aborted) throw new DOMException('Download cancelled', 'AbortError');
-      const job = jobs[cursor++];
-      try {
-        const verses = await fetchChapter(translation, job.bookId, job.chapter, signal);
-        await saveChapter(translation, job.bookId, job.chapter, verses);
-        consecutiveFailures = 0;
-        // Only count real successes — a retried chapter must not be counted
-        // twice (once on its failed attempt, once on its retry).
-        done++;
-        onProgress({ done, total, percent: Math.round((done / total) * 100) });
-      } catch (err) {
-        if ((err as Error).name === 'AbortError') throw err;
-        consecutiveFailures++;
-        if (consecutiveFailures >= 10) {
-          throw new Error('Too many failed requests in a row — check your connection and try again.');
-        }
-        // Add a delay before retrying to prevent rapid failures
-        await new Promise(r => setTimeout(r, 1000));
-        // Put it back at the end of the queue to retry once more later.
-        jobs.push(job);
+  let chaptersSaved = 0;
+  const PROGRESS_EVERY = 15; // throttle UI updates — still feels smooth, far fewer re-renders
+
+  for (let i = 0; i < BIBLE_BOOKS.length; i++) {
+    if (signal?.aborted) throw new DOMException('Download cancelled', 'AbortError');
+
+    const bookMeta = BIBLE_BOOKS[i];
+    const sourceBook = data[i];
+    // Books are matched by canonical order (Genesis → Revelation), not by
+    // name/abbreviation string — the source's own abbreviations aren't
+    // guaranteed to match our book IDs, but the book order is always fixed.
+    if (!sourceBook?.chapters) continue;
+
+    for (let c = 0; c < sourceBook.chapters.length; c++) {
+      const verses: BibleVerseEntry[] = sourceBook.chapters[c].map((text, idx) => ({
+        verse: idx + 1,
+        text: text.trim(),
+      }));
+      await saveChapter(translation, bookMeta.id, c + 1, verses);
+      chaptersSaved++;
+
+      if (chaptersSaved % PROGRESS_EVERY === 0 || chaptersSaved === TOTAL_CHAPTERS) {
+        onProgress({
+          stage: 'saving',
+          done: chaptersSaved,
+          total: TOTAL_CHAPTERS,
+          percent: Math.round((chaptersSaved / TOTAL_CHAPTERS) * 100),
+        });
       }
     }
   }
-
-  const workers = Array.from({ length: CONCURRENCY }, () => worker());
-  await Promise.all(workers);
 }
